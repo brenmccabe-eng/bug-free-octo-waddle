@@ -14,7 +14,7 @@ body {
 
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,24 +24,28 @@ body {
 
 /* Welcome Screen */
 .welcome-screen {
-  background: white;
+  background: #1e1e2e;
   padding: 40px;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 600px;
   text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .welcome-screen h1 {
   font-size: 3rem;
-  color: #667eea;
+  color: #e0e0e0;
   margin-bottom: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 .tagline {
   font-size: 1.2rem;
-  color: #64748b;
+  color: #a0a0a0;
   margin-bottom: 30px;
+  font-weight: 300;
 }
 
 .difficulty-selector {
@@ -50,7 +54,8 @@ body {
 
 .difficulty-selector h3 {
   margin-bottom: 15px;
-  color: #334155;
+  color: #e0e0e0;
+  font-weight: 500;
 }
 
 .difficulty-buttons {
@@ -62,60 +67,66 @@ body {
 
 .difficulty-buttons button {
   padding: 12px 24px;
-  border: 3px solid #cbd5e1;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .difficulty-buttons button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .difficulty-buttons button.selected {
-  background: #f1f5f9;
-  border-width: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-width: 2px;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .start-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
   color: white;
   border: none;
   padding: 16px 48px;
   font-size: 1.3rem;
   font-weight: bold;
-  border-radius: 50px;
+  border-radius: 10px;
   cursor: pointer;
   margin: 20px 0;
   transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
 }
 
 .start-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+  background: linear-gradient(135deg, #00e5ff 0%, #00aadd 100%);
 }
 
 .game-info {
   margin-top: 30px;
   text-align: left;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
   padding: 20px;
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .game-info h3 {
   margin-bottom: 10px;
-  color: #334155;
+  color: #e0e0e0;
+  font-weight: 500;
 }
 
 .game-info ol {
   margin-left: 20px;
-  color: #64748b;
+  color: #a0a0a0;
   line-height: 1.8;
 }
 
@@ -125,36 +136,104 @@ body {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
   margin-bottom: 30px;
   color: white;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .back-button {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  border: 2px solid white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .game-header h2 {
   font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-.cards-remaining {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 10px 20px;
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.timer-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  font-family: 'Courier New', monospace;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.timer-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
   font-weight: 600;
+  transition: all 0.3s;
+}
+
+.timer-button.start {
+  background: #10b981;
+  color: white;
+}
+
+.timer-button.start:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.timer-button.pause {
+  background: #f59e0b;
+  color: white;
+}
+
+.timer-button.pause:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.timer-button.reset {
+  background: #ef4444;
+  color: white;
+}
+
+.timer-button.reset:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.score-display {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #10b981;
+  margin-top: 5px;
 }
 
 /* Card Container */
@@ -166,13 +245,13 @@ body {
 }
 
 .game-card {
-  background: white;
-  border-radius: 20px;
+  background: #1e1e2e;
+  border-radius: 15px;
   padding: 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   min-width: 500px;
   max-width: 600px;
-  border: 5px solid;
+  border: 2px solid;
   position: relative;
   animation: cardAppear 0.3s ease-out;
 }
@@ -193,18 +272,21 @@ body {
   top: 20px;
   right: 20px;
   padding: 8px 16px;
-  border-radius: 20px;
+  border-radius: 8px;
   color: white;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .card-name {
   font-size: 2.5rem;
-  color: #1e293b;
+  color: #e0e0e0;
   margin: 40px 0 30px 0;
   text-align: center;
   line-height: 1.2;
+  font-weight: 700;
 }
 
 .definition-section {
@@ -213,48 +295,52 @@ body {
 }
 
 .toggle-definition {
-  background: #f1f5f9;
-  border: 2px solid #cbd5e1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e0e0e0;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 15px;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .toggle-definition:hover {
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .card-definition {
   font-size: 1.1rem;
-  color: #64748b;
+  color: #a0a0a0;
   font-style: italic;
   line-height: 1.6;
   padding: 15px;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .next-button {
-  background: white;
-  color: #667eea;
-  border: 3px solid white;
+  background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+  color: white;
+  border: none;
   padding: 16px 48px;
   font-size: 1.2rem;
   font-weight: bold;
-  border-radius: 50px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
 }
 
 .next-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+  background: linear-gradient(135deg, #00e5ff 0%, #00aadd 100%);
 }
 
 /* Responsive Design */
