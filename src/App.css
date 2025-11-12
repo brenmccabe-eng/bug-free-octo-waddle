@@ -1,0 +1,292 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.App {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Welcome Screen */
+.welcome-screen {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  text-align: center;
+}
+
+.welcome-screen h1 {
+  font-size: 3rem;
+  color: #667eea;
+  margin-bottom: 10px;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin-bottom: 30px;
+}
+
+.difficulty-selector {
+  margin: 30px 0;
+}
+
+.difficulty-selector h3 {
+  margin-bottom: 15px;
+  color: #334155;
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.difficulty-buttons button {
+  padding: 12px 24px;
+  border: 3px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.difficulty-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.difficulty-buttons button.selected {
+  background: #f1f5f9;
+  border-width: 3px;
+}
+
+.start-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  margin: 20px 0;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.start-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.game-info {
+  margin-top: 30px;
+  text-align: left;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.game-info h3 {
+  margin-bottom: 10px;
+  color: #334155;
+}
+
+.game-info ol {
+  margin-left: 20px;
+  color: #64748b;
+  line-height: 1.8;
+}
+
+/* Game Screen */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.back-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.game-header h2 {
+  font-size: 1.5rem;
+}
+
+.cards-remaining {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Card Container */
+.card-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.game-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  min-width: 500px;
+  max-width: 600px;
+  border: 5px solid;
+  position: relative;
+  animation: cardAppear 0.3s ease-out;
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.difficulty-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.card-name {
+  font-size: 2.5rem;
+  color: #1e293b;
+  margin: 40px 0 30px 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.definition-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.toggle-definition {
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  transition: all 0.2s;
+}
+
+.toggle-definition:hover {
+  background: #e2e8f0;
+}
+
+.card-definition {
+  font-size: 1.1rem;
+  color: #64748b;
+  font-style: italic;
+  line-height: 1.6;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.next-button {
+  background: white;
+  color: #667eea;
+  border: 3px solid white;
+  padding: 16px 48px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.next-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .welcome-screen {
+    padding: 30px 20px;
+  }
+
+  .welcome-screen h1 {
+    font-size: 2rem;
+  }
+
+  .game-card {
+    min-width: auto;
+    width: 100%;
+    padding: 30px 20px;
+  }
+
+  .card-name {
+    font-size: 1.8rem;
+  }
+
+  .difficulty-buttons {
+    flex-direction: column;
+  }
+
+  .difficulty-buttons button {
+    width: 100%;
+  }
+
+  .game-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
