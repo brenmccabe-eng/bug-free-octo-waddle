@@ -95,10 +95,6 @@ function App() {
     }
   };
 
-  const getDifficultyStars = (difficulty) => {
-    return '⭐'.repeat(difficulty);
-  };
-
   if (!gameStarted) {
     return (
       <div className="App">
