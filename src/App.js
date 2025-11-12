@@ -1,13 +1,26 @@
 import React, { useState } from 'react';
 import './App.css';
 import { cards } from './data/cards';
+import { useSwipe } from './hooks/useSwipe';
+import { useTheme } from './hooks/useTheme';
+import ScoreBoard from './components/ScoreBoard';
+import SkippedCardsModal from './components/SkippedCardsModal';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+
   const [currentCard, setCurrentCard] = useState(null);
   const [usedCards, setUsedCards] = useState([]);
   const [showDefinition, setShowDefinition] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [gameStarted, setGameStarted] = useState(false);
+
+  // Swipe scoring state
+  const [scoredCards, setScoredCards] = useState([]);
+  const [skippedCards, setSkippedCards] = useState([]);
+  const [showSkippedModal, setShowSkippedModal] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationClass, setAnimationClass] = useState('');
 
   const getRandomCard = () => {
     let availableCards = cards.filter(card => !usedCards.includes(card.id));
@@ -42,7 +55,69 @@ function App() {
     setGameStarted(false);
     setCurrentCard(null);
     setUsedCards([]);
+    setScoredCards([]);
+    setSkippedCards([]);
+    setAnimationClass('');
   };
+
+  // Swipe handlers
+  const handleSwipeRight = () => {
+    if (isAnimating || !currentCard) return;
+
+    setIsAnimating(true);
+    setAnimationClass('card-swipe-right');
+    setScoredCards([...scoredCards, currentCard]);
+
+    setTimeout(() => {
+      getRandomCard();
+      setAnimationClass('');
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleSwipeLeft = () => {
+    if (isAnimating || !currentCard) return;
+
+    setIsAnimating(true);
+    setAnimationClass('card-swipe-left');
+    setSkippedCards([...skippedCards, currentCard]);
+
+    setTimeout(() => {
+      getRandomCard();
+      setAnimationClass('');
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const goToPreviousCard = () => {
+    if (skippedCards.length > 0) {
+      const lastSkipped = skippedCards[skippedCards.length - 1];
+      setCurrentCard(lastSkipped);
+      setSkippedCards(skippedCards.slice(0, -1));
+      // Remove from used cards so it can be scored
+      setUsedCards(usedCards.filter(id => id !== lastSkipped.id));
+    }
+  };
+
+  const handleSelectSkippedCard = (card) => {
+    setCurrentCard(card);
+    setSkippedCards(skippedCards.filter(c => c.id !== card.id));
+    setShowSkippedModal(false);
+    // Remove from used cards so it can be scored
+    setUsedCards(usedCards.filter(id => id !== card.id));
+  };
+
+  // Initialize swipe hook
+  const { handlers, swipeDirection, dragOffset } = useSwipe(
+    handleSwipeLeft,
+    handleSwipeRight,
+    100
+  );
+
+  // Apply drag transform
+  const cardStyle = dragOffset.x !== 0 ? {
+    transform: `translateX(${dragOffset.x}px) rotate(${dragOffset.x * 0.05}deg)`,
+  } : {};
 
   const getDifficultyColor = (difficulty) => {
     switch(difficulty) {
@@ -60,6 +135,9 @@ function App() {
   if (!gameStarted) {
     return (
       <div className="App">
+        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
         <div className="welcome-screen">
           <h1>🐟 Addison and Camryn's Fish in a Bowl</h1>
           <p className="tagline">Act it out, guess it fast - make some memories that last!</p>
@@ -117,46 +195,77 @@ function App() {
 
   return (
     <div className="App">
+      <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
       <div className="game-header">
         <button className="back-button" onClick={resetGame}>
           ← Back to Menu
         </button>
-        <h2>Fish in a Bowl</h2>
-        <div className="cards-remaining">
-          Cards left: {cards.length - usedCards.length + 1}
-        </div>
+        <ScoreBoard
+          score={scoredCards.length}
+          skippedCount={skippedCards.length}
+          onReviewSkipped={() => setShowSkippedModal(true)}
+        />
       </div>
+
+      {skippedCards.length > 0 && (
+        <button className="previous-button" onClick={goToPreviousCard}>
+          ← Previous Skipped Card
+        </button>
+      )}
 
       {currentCard && (
         <div className="card-container">
-          <div 
-            className="game-card"
-            style={{ borderColor: getDifficultyColor(currentCard.difficulty) }}
+          <div
+            {...handlers}
+            className={`game-card ${animationClass} ${swipeDirection === 'right' ? 'score-glow-right' : ''} ${swipeDirection === 'left' ? 'score-glow-left' : ''}`}
+            style={{
+              borderColor: getDifficultyColor(currentCard.difficulty),
+              ...cardStyle
+            }}
           >
             <div className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}>
               {getDifficultyStars(currentCard.difficulty)} Difficulty {currentCard.difficulty}
             </div>
-            
+
             <h1 className="card-name">{currentCard.name}</h1>
-            
+
             <div className="definition-section">
-              <button 
+              <button
                 className="toggle-definition"
                 onClick={() => setShowDefinition(!showDefinition)}
               >
                 {showDefinition ? '👁️ Hide Hint' : '👁️ Show Hint'}
               </button>
-              
+
               {showDefinition && (
                 <p className="card-definition">{currentCard.definition}</p>
               )}
             </div>
           </div>
 
-          <button className="next-button" onClick={getRandomCard}>
-            Next Card →
-          </button>
+          <div className="swipe-instructions">
+            <div className="swipe-hint swipe-left">
+              <span className="swipe-arrow">←</span>
+              <span>Swipe left to skip</span>
+            </div>
+            <div className="swipe-hint swipe-right">
+              <span>Swipe right to score</span>
+              <span className="swipe-arrow">→</span>
+            </div>
+          </div>
         </div>
+      )}
+
+      {showSkippedModal && (
+        <SkippedCardsModal
+          skippedCards={skippedCards}
+          onClose={() => setShowSkippedModal(false)}
+          onSelectCard={handleSelectSkippedCard}
+          getDifficultyColor={getDifficultyColor}
+          getDifficultyStars={getDifficultyStars}
+        />
       )}
     </div>
   );
