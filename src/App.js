@@ -285,6 +285,12 @@ function App() {
   // Start next round
   const startNextRound = () => {
     setCurrentRound(currentRound + 1);
+
+    // Use only the scored cards from previous round as the new deck
+    const newDeck = shuffleArray(scoredCards);
+    setDeckForRounds(newDeck);
+
+    // Reset round state
     setScoredCards([]);
     setSkippedCards([]);
     setUsedCards([]);
@@ -292,11 +298,15 @@ function App() {
     setCardsCompleted(0);
     setShowTransition(false);
 
-    // Reshuffle the same deck
-    const reshuffled = shuffleArray(deckForRounds);
-    setDeckForRounds(reshuffled);
-    setCurrentCard(reshuffled[0]);
-    setUsedCards([reshuffled[0].id]);
+    // Start with first card if deck is not empty
+    if (newDeck.length > 0) {
+      setCurrentCard(newDeck[0]);
+      setUsedCards([newDeck[0].id]);
+    } else {
+      // If no cards were scored, show final score
+      setCurrentCard(null);
+      setShowFinalScore(true);
+    }
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -327,10 +337,24 @@ function App() {
               {roundRules.icon} {roundRules.title}
             </h2>
             <p className="round-description">{roundRules.description}</p>
+            {scoredCards.length > 0 ? (
+              <p className="next-round-cards" style={{ marginTop: '15px', color: '#a0a0a0' }}>
+                You'll play with the {scoredCards.length} card{scoredCards.length !== 1 ? 's' : ''} you got in Round {currentRound}
+              </p>
+            ) : (
+              <p className="next-round-cards" style={{ marginTop: '15px', color: '#ef4444', fontWeight: 'bold' }}>
+                No cards were scored! The game will end.
+              </p>
+            )}
           </div>
 
-          <button className="start-button" onClick={startNextRound}>
-            Start Round {currentRound + 1}
+          <button
+            className="start-button"
+            onClick={startNextRound}
+            disabled={scoredCards.length === 0}
+            style={scoredCards.length === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+          >
+            {scoredCards.length > 0 ? `Start Round ${currentRound + 1}` : 'End Game'}
           </button>
         </div>
       </div>
@@ -343,7 +367,7 @@ function App() {
     const maxTotalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.maxPoints, 0);
     const totalPercentage = Math.round((totalPoints / maxTotalPoints) * 100);
     const totalCards = Object.values(roundScores).reduce((sum, r) => sum + r.scored, 0);
-    const totalPossibleCards = deckForRounds.length * 3;
+    const totalPossibleCards = Object.values(roundScores).reduce((sum, r) => sum + r.total, 0);
 
     return (
       <div className="App">
