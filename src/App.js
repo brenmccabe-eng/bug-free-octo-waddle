@@ -29,6 +29,12 @@ function App() {
   const [showTransition, setShowTransition] = useState(false);
   const [showFinalScore, setShowFinalScore] = useState(false);
 
+  // Team state
+  const [numberOfTeams, setNumberOfTeams] = useState(2);
+  const [currentTeam, setCurrentTeam] = useState(1);
+  const [teamScores, setTeamScores] = useState({});
+  const [showTeamTransition, setShowTeamTransition] = useState(false);
+
   // Swipe animation state
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationClass, setAnimationClass] = useState('');
@@ -102,18 +108,23 @@ function App() {
           // Play sound when timer hits zero
           if (newTime === 0) {
             playBuzzer();
+
+            // In Monikers mode, stop timer and show team transition
+            if (gameMode === 'monikers') {
+              setTimerRunning(false);
+            }
           }
 
           return newTime;
         });
       }, 1000);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && timerRunning) {
       setTimerRunning(false);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerRunning, timeLeft]);
+  }, [timerRunning, timeLeft, gameMode]);
 
   const getRandomCard = () => {
     let availableCards = cards.filter(card => !usedCards.includes(card.id));
@@ -152,11 +163,21 @@ function App() {
       // Initialize deck for Monikers mode
       const deck = initializeDeck();
       setCurrentRound(1);
+      setCurrentTeam(1);
       setScoredCards([]);
       setSkippedCards([]);
       setRoundScores({});
+
+      // Initialize team scores
+      const initialTeamScores = {};
+      for (let i = 1; i <= numberOfTeams; i++) {
+        initialTeamScores[`team${i}`] = { rounds: {} };
+      }
+      setTeamScores(initialTeamScores);
+
       setShowTransition(false);
       setShowFinalScore(false);
+      setShowTeamTransition(false);
       setCurrentCard(deck[0]);
       setUsedCards([deck[0].id]);
     } else {
@@ -174,12 +195,15 @@ function App() {
     setCardsCompleted(0);
     setGameMode('quick');
     setCurrentRound(1);
+    setCurrentTeam(1);
     setDeckForRounds([]);
     setRoundScores({});
+    setTeamScores({});
     setScoredCards([]);
     setSkippedCards([]);
     setShowTransition(false);
     setShowFinalScore(false);
+    setShowTeamTransition(false);
   };
 
   const startTimer = () => {
@@ -267,24 +291,73 @@ function App() {
     }
   };
 
-  // Complete current round
-  const completeRound = () => {
+  // Complete current team's turn
+  const completeTeamTurn = () => {
     const points = calculatePoints(scoredCards);
     const maxPoints = calculateMaxPoints(deckForRounds);
 
-    const roundScore = {
+    const turnScore = {
       scored: scoredCards.length,
       skipped: skippedCards.length,
       total: deckForRounds.length,
       points: points,
       maxPoints: maxPoints,
-      percentage: Math.round((points / maxPoints) * 100)
+      percentage: maxPoints > 0 ? Math.round((points / maxPoints) * 100) : 0,
+      scoredCardsList: [...scoredCards],
+      skippedCardsList: [...skippedCards]
+    };
+
+    // Save this team's score for this round
+    const updatedTeamScores = { ...teamScores };
+    if (!updatedTeamScores[`team${currentTeam}`]) {
+      updatedTeamScores[`team${currentTeam}`] = { rounds: {} };
+    }
+    updatedTeamScores[`team${currentTeam}`].rounds[`round${currentRound}`] = turnScore;
+    setTeamScores(updatedTeamScores);
+
+    // Check if all teams have played this round
+    if (currentTeam < numberOfTeams) {
+      // More teams need to play this round
+      setShowTeamTransition(true);
+    } else {
+      // All teams finished this round, complete the round
+      completeRound(updatedTeamScores);
+    }
+  };
+
+  // Complete current round (after all teams have played)
+  const completeRound = (finalTeamScores = teamScores) => {
+    // Aggregate all scored cards from all teams in this round
+    let allScoredCards = [];
+    for (let i = 1; i <= numberOfTeams; i++) {
+      const teamRoundData = finalTeamScores[`team${i}`]?.rounds[`round${currentRound}`];
+      if (teamRoundData && teamRoundData.scoredCardsList) {
+        allScoredCards = [...allScoredCards, ...teamRoundData.scoredCardsList];
+      }
+    }
+
+    // Calculate round totals
+    const totalPoints = Object.keys(finalTeamScores).reduce((sum, teamKey) => {
+      const roundData = finalTeamScores[teamKey].rounds[`round${currentRound}`];
+      return sum + (roundData?.points || 0);
+    }, 0);
+
+    const maxPoints = calculateMaxPoints(deckForRounds) * numberOfTeams;
+
+    const roundScore = {
+      totalPoints: totalPoints,
+      maxPoints: maxPoints,
+      percentage: maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 100) : 0,
+      allScoredCards: allScoredCards
     };
 
     setRoundScores({
       ...roundScores,
       [`round${currentRound}`]: roundScore
     });
+
+    // Use the aggregated scored cards for the next round
+    setScoredCards(allScoredCards);
 
     if (currentRound < 3) {
       setShowTransition(true);
@@ -293,9 +366,30 @@ function App() {
     }
   };
 
+  // Start next team's turn
+  const startNextTeam = () => {
+    setCurrentTeam(currentTeam + 1);
+    setShowTeamTransition(false);
+
+    // Reset turn state
+    setScoredCards([]);
+    setSkippedCards([]);
+    setUsedCards([]);
+    setTimeLeft(60);
+    setCardsCompleted(0);
+    setTimerRunning(false);
+
+    // Start with first card from the deck
+    if (deckForRounds.length > 0) {
+      setCurrentCard(deckForRounds[0]);
+      setUsedCards([deckForRounds[0].id]);
+    }
+  };
+
   // Start next round
   const startNextRound = () => {
     setCurrentRound(currentRound + 1);
+    setCurrentTeam(1);
 
     // Use only the scored cards from previous round as the new deck
     const newDeck = shuffleArray(scoredCards);
@@ -368,6 +462,39 @@ function App() {
     setShowSkippedModal(false);
   };
 
+  // Show team transition screen (when switching between teams in a round)
+  if (showTeamTransition) {
+    const prevTeamScore = teamScores[`team${currentTeam}`]?.rounds[`round${currentRound}`];
+
+    return (
+      <div className="App">
+        <div className="transition-screen">
+          <h1>Team {currentTeam} - Time's Up!</h1>
+          {prevTeamScore && (
+            <div className="round-score">
+              <h2>Team {currentTeam} Score: {prevTeamScore.points}/{prevTeamScore.maxPoints} points</h2>
+              <p className="score-percentage">{prevTeamScore.scored}/{prevTeamScore.total} cards • {prevTeamScore.percentage}% of points</p>
+            </div>
+          )}
+
+          <div className="next-round-info">
+            <h2 style={{ color: '#3b82f6' }}>
+              🎮 Team {currentTeam + 1}'s Turn
+            </h2>
+            <p className="round-description">Get ready! Team {currentTeam + 1} is up next.</p>
+          </div>
+
+          <button
+            className="start-button"
+            onClick={startNextTeam}
+          >
+            Start Team {currentTeam + 1}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show round transition screen
   if (showTransition) {
     const roundRules = getRoundRules(currentRound + 1);
@@ -378,8 +505,21 @@ function App() {
         <div className="transition-screen">
           <h1>Round {currentRound} Complete!</h1>
           <div className="round-score">
-            <h2>Your Score: {prevRoundScore.points}/{prevRoundScore.maxPoints} points</h2>
-            <p className="score-percentage">{prevRoundScore.scored}/{prevRoundScore.total} cards • {prevRoundScore.percentage}% of points</p>
+            <h2>Total Score: {prevRoundScore.totalPoints}/{prevRoundScore.maxPoints} points</h2>
+            <p className="score-percentage">{prevRoundScore.percentage}% of points</p>
+          </div>
+
+          <div className="team-scores-breakdown">
+            <h3>Team Breakdown:</h3>
+            {Array.from({ length: numberOfTeams }, (_, i) => i + 1).map(teamNum => {
+              const teamData = teamScores[`team${teamNum}`]?.rounds[`round${currentRound}`];
+              return teamData ? (
+                <div key={teamNum} className="team-score-row">
+                  <span className="team-name">Team {teamNum}:</span>
+                  <span className="team-points">{teamData.points}/{teamData.maxPoints} pts ({teamData.scored}/{teamData.total} cards)</span>
+                </div>
+              ) : null;
+            })}
           </div>
 
           <div className="next-round-info">
@@ -387,9 +527,9 @@ function App() {
               {roundRules.icon} {roundRules.title}
             </h2>
             <p className="round-description">{roundRules.description}</p>
-            {scoredCards.length > 0 ? (
+            {prevRoundScore.allScoredCards && prevRoundScore.allScoredCards.length > 0 ? (
               <p className="next-round-cards" style={{ marginTop: '15px', color: '#a0a0a0' }}>
-                You'll play with the {scoredCards.length} card{scoredCards.length !== 1 ? 's' : ''} you got in Round {currentRound}
+                You'll play with the {prevRoundScore.allScoredCards.length} card{prevRoundScore.allScoredCards.length !== 1 ? 's' : ''} scored in Round {currentRound}
               </p>
             ) : (
               <p className="next-round-cards" style={{ marginTop: '15px', color: '#ef4444', fontWeight: 'bold' }}>
@@ -401,10 +541,10 @@ function App() {
           <button
             className="start-button"
             onClick={startNextRound}
-            disabled={scoredCards.length === 0}
-            style={scoredCards.length === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+            disabled={!prevRoundScore.allScoredCards || prevRoundScore.allScoredCards.length === 0}
+            style={(!prevRoundScore.allScoredCards || prevRoundScore.allScoredCards.length === 0) ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
           >
-            {scoredCards.length > 0 ? `Start Round ${currentRound + 1}` : 'End Game'}
+            {prevRoundScore.allScoredCards && prevRoundScore.allScoredCards.length > 0 ? `Start Round ${currentRound + 1}` : 'End Game'}
           </button>
         </div>
       </div>
@@ -413,19 +553,55 @@ function App() {
 
   // Show final score screen
   if (showFinalScore) {
-    const totalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.points, 0);
-    const maxTotalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.maxPoints, 0);
-    const totalPercentage = Math.round((totalPoints / maxTotalPoints) * 100);
-    const totalCards = Object.values(roundScores).reduce((sum, r) => sum + r.scored, 0);
-    const totalPossibleCards = Object.values(roundScores).reduce((sum, r) => sum + r.total, 0);
+    // Calculate team totals
+    const teamTotals = {};
+    for (let i = 1; i <= numberOfTeams; i++) {
+      const teamKey = `team${i}`;
+      const teamData = teamScores[teamKey];
+      let totalPoints = 0;
+      let maxPoints = 0;
+
+      if (teamData && teamData.rounds) {
+        Object.values(teamData.rounds).forEach(roundData => {
+          totalPoints += roundData.points || 0;
+          maxPoints += roundData.maxPoints || 0;
+        });
+      }
+
+      teamTotals[teamKey] = {
+        points: totalPoints,
+        maxPoints: maxPoints,
+        percentage: maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 100) : 0
+      };
+    }
+
+    // Find winning team
+    const sortedTeams = Object.entries(teamTotals).sort((a, b) => b[1].points - a[1].points);
+    const winningTeam = sortedTeams[0];
+
 
     return (
       <div className="App">
         <div className="final-score-screen">
           <h1>🎉 Game Complete! 🎉</h1>
           <div className="total-score">
-            <h2>Final Score: {totalPoints}/{maxTotalPoints} points</h2>
-            <p className="score-percentage">{totalCards}/{totalPossibleCards} cards • {totalPercentage}% of points</p>
+            <h2>Winner: Team {winningTeam[0].replace('team', '')}!</h2>
+            <p className="score-percentage">{winningTeam[1].points} points ({winningTeam[1].percentage}%)</p>
+          </div>
+
+          <div className="round-breakdown">
+            <h3>Team Standings:</h3>
+            {sortedTeams.map(([teamKey, teamTotal], index) => {
+              const teamNum = teamKey.replace('team', '');
+              return (
+                <div key={teamKey} className="team-final-score" style={{ borderLeft: `4px solid ${index === 0 ? '#22c55e' : '#64748b'}` }}>
+                  <span className="team-position">{index + 1}. Team {teamNum}</span>
+                  <span className="team-final-points">
+                    {teamTotal.points}/{teamTotal.maxPoints} pts ({teamTotal.percentage}%)
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           <div className="round-breakdown">
@@ -433,15 +609,15 @@ function App() {
             {[1, 2, 3].map(roundNum => {
               const score = roundScores[`round${roundNum}`];
               const rules = getRoundRules(roundNum);
-              return (
+              return score ? (
                 <div key={roundNum} className="round-summary" style={{ borderLeft: `4px solid ${rules.color}` }}>
                   <span className="round-icon">{rules.icon}</span>
                   <span className="round-name">Round {roundNum}</span>
                   <span className="round-score-text">
-                    {score.points}/{score.maxPoints} pts ({score.percentage}%)
+                    {score.totalPoints}/{score.maxPoints} pts ({score.percentage}%)
                   </span>
                 </div>
-              );
+              ) : null;
             })}
           </div>
 
@@ -496,6 +672,21 @@ function App() {
                 Hard
               </button>
             </div>
+          </div>
+
+          <div className="teams-selector">
+            <h3>Number of Teams:</h3>
+            <select
+              value={numberOfTeams}
+              onChange={(e) => setNumberOfTeams(parseInt(e.target.value))}
+              className="teams-dropdown"
+            >
+              <option value={2}>2 Teams</option>
+              <option value={3}>3 Teams</option>
+              <option value={4}>4 Teams</option>
+              <option value={5}>5 Teams</option>
+              <option value={6}>6 Teams</option>
+            </select>
           </div>
 
           <div className="mode-selector">
@@ -571,8 +762,8 @@ function App() {
               Reset
             </button>
             {gameMode === 'monikers' && currentCard && (
-              <button className="timer-button next-round" onClick={completeRound}>
-                End Round →
+              <button className="timer-button next-round" onClick={completeTeamTurn}>
+                End Turn →
               </button>
             )}
           </div>
@@ -589,6 +780,9 @@ function App() {
           <div className="round-info">
             <span className="round-icon">{roundRules.icon}</span>
             <span className="round-title">{roundRules.title}</span>
+            <span className="team-indicator" style={{ marginLeft: '15px', fontSize: '1rem', fontWeight: 'bold' }}>
+              • Team {currentTeam}
+            </span>
           </div>
           <div className="round-description-inline">{roundRules.description}</div>
           <div className="round-score-tracker">
