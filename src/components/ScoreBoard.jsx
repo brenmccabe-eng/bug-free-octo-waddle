@@ -1,4 +1,5 @@
 import React from 'react';
+import './ScoreBoard.css';
 
 const ScoreBoard = ({ score, skippedCount, onReviewSkipped }) => {
   return (
@@ -12,7 +13,7 @@ const ScoreBoard = ({ score, skippedCount, onReviewSkipped }) => {
         <span className="score-value">{skippedCount}</span>
       </div>
       {skippedCount > 0 && (
-        <button 
+        <button
           className="review-skipped-button"
           onClick={onReviewSkipped}
         >

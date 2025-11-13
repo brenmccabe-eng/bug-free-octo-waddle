@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { cards } from './data/cards';
+import { useSwipe } from './hooks/useSwipe';
+import { useTheme } from './hooks/useTheme';
+import ScoreBoard from './components/ScoreBoard';
+import SkippedCardsModal from './components/SkippedCardsModal';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+
   // Basic game state
   const [currentCard, setCurrentCard] = useState(null);
   const [usedCards, setUsedCards] = useState([]);
@@ -22,6 +28,11 @@ function App() {
   const [skippedCards, setSkippedCards] = useState([]);
   const [showTransition, setShowTransition] = useState(false);
   const [showFinalScore, setShowFinalScore] = useState(false);
+
+  // Swipe animation state
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationClass, setAnimationClass] = useState('');
+  const [showSkippedModal, setShowSkippedModal] = useState(false);
 
   // Function to play buzzer sound when timer ends
   const playBuzzer = () => {
@@ -197,6 +208,16 @@ function App() {
     return shuffled;
   };
 
+  // Calculate points from array of cards based on difficulty
+  const calculatePoints = (cards) => {
+    return cards.reduce((total, card) => total + card.difficulty, 0);
+  };
+
+  // Calculate max possible points from deck
+  const calculateMaxPoints = (deck) => {
+    return deck.reduce((total, card) => total + card.difficulty, 0);
+  };
+
   // Initialize deck for Monikers mode
   const initializeDeck = () => {
     let availableCards = selectedDifficulty === 'all'
@@ -248,11 +269,16 @@ function App() {
 
   // Complete current round
   const completeRound = () => {
+    const points = calculatePoints(scoredCards);
+    const maxPoints = calculateMaxPoints(deckForRounds);
+
     const roundScore = {
       scored: scoredCards.length,
       skipped: skippedCards.length,
       total: deckForRounds.length,
-      percentage: Math.round((scoredCards.length / deckForRounds.length) * 100)
+      points: points,
+      maxPoints: maxPoints,
+      percentage: Math.round((points / maxPoints) * 100)
     };
 
     setRoundScores({
@@ -270,6 +296,12 @@ function App() {
   // Start next round
   const startNextRound = () => {
     setCurrentRound(currentRound + 1);
+
+    // Use only the scored cards from previous round as the new deck
+    const newDeck = shuffleArray(scoredCards);
+    setDeckForRounds(newDeck);
+
+    // Reset round state
     setScoredCards([]);
     setSkippedCards([]);
     setUsedCards([]);
@@ -277,11 +309,15 @@ function App() {
     setCardsCompleted(0);
     setShowTransition(false);
 
-    // Reshuffle the same deck
-    const reshuffled = shuffleArray(deckForRounds);
-    setDeckForRounds(reshuffled);
-    setCurrentCard(reshuffled[0]);
-    setUsedCards([reshuffled[0].id]);
+    // Start with first card if deck is not empty
+    if (newDeck.length > 0) {
+      setCurrentCard(newDeck[0]);
+      setUsedCards([newDeck[0].id]);
+    } else {
+      // If no cards were scored, show final score
+      setCurrentCard(null);
+      setShowFinalScore(true);
+    }
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -291,6 +327,45 @@ function App() {
       case 3: return '#ec4899';
       default: return '#64748b';
     }
+  };
+
+  const getDifficultyStars = (difficulty) => {
+    return '⭐'.repeat(difficulty);
+  };
+
+  // Swipe handlers for Quick Play mode
+  const handleSwipeRight = () => {
+    if (isAnimating || !currentCard || gameMode === 'monikers') return;
+    setIsAnimating(true);
+    setAnimationClass('card-swipe-right');
+    setScoredCards([...scoredCards, currentCard]);
+    setTimeout(() => {
+      getRandomCard();
+      setAnimationClass('');
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleSwipeLeft = () => {
+    if (isAnimating || !currentCard || gameMode === 'monikers') return;
+    setIsAnimating(true);
+    setAnimationClass('card-swipe-left');
+    setSkippedCards([...skippedCards, currentCard]);
+    setTimeout(() => {
+      getRandomCard();
+      setAnimationClass('');
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  // Initialize swipe hook
+  const { handlers, swipeDirection, dragOffset, isSwiping } = useSwipe(handleSwipeLeft, handleSwipeRight, 100);
+
+  // Handle replaying a skipped card
+  const handleReplayCard = (card) => {
+    setCurrentCard(card);
+    setSkippedCards(skippedCards.filter(c => c.id !== card.id));
+    setShowSkippedModal(false);
   };
 
   // Show round transition screen
@@ -303,8 +378,8 @@ function App() {
         <div className="transition-screen">
           <h1>Round {currentRound} Complete!</h1>
           <div className="round-score">
-            <h2>Your Score: {prevRoundScore.scored}/{prevRoundScore.total}</h2>
-            <p className="score-percentage">{prevRoundScore.percentage}% Correct</p>
+            <h2>Your Score: {prevRoundScore.points}/{prevRoundScore.maxPoints} points</h2>
+            <p className="score-percentage">{prevRoundScore.scored}/{prevRoundScore.total} cards • {prevRoundScore.percentage}% of points</p>
           </div>
 
           <div className="next-round-info">
@@ -312,10 +387,24 @@ function App() {
               {roundRules.icon} {roundRules.title}
             </h2>
             <p className="round-description">{roundRules.description}</p>
+            {scoredCards.length > 0 ? (
+              <p className="next-round-cards" style={{ marginTop: '15px', color: '#a0a0a0' }}>
+                You'll play with the {scoredCards.length} card{scoredCards.length !== 1 ? 's' : ''} you got in Round {currentRound}
+              </p>
+            ) : (
+              <p className="next-round-cards" style={{ marginTop: '15px', color: '#ef4444', fontWeight: 'bold' }}>
+                No cards were scored! The game will end.
+              </p>
+            )}
           </div>
 
-          <button className="start-button" onClick={startNextRound}>
-            Start Round {currentRound + 1}
+          <button
+            className="start-button"
+            onClick={startNextRound}
+            disabled={scoredCards.length === 0}
+            style={scoredCards.length === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+          >
+            {scoredCards.length > 0 ? `Start Round ${currentRound + 1}` : 'End Game'}
           </button>
         </div>
       </div>
@@ -324,17 +413,19 @@ function App() {
 
   // Show final score screen
   if (showFinalScore) {
-    const totalScored = Object.values(roundScores).reduce((sum, r) => sum + r.scored, 0);
-    const totalCards = deckForRounds.length * 3;
-    const totalPercentage = Math.round((totalScored / totalCards) * 100);
+    const totalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.points, 0);
+    const maxTotalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.maxPoints, 0);
+    const totalPercentage = Math.round((totalPoints / maxTotalPoints) * 100);
+    const totalCards = Object.values(roundScores).reduce((sum, r) => sum + r.scored, 0);
+    const totalPossibleCards = Object.values(roundScores).reduce((sum, r) => sum + r.total, 0);
 
     return (
       <div className="App">
         <div className="final-score-screen">
           <h1>🎉 Game Complete! 🎉</h1>
           <div className="total-score">
-            <h2>Final Score: {totalScored}/{totalCards}</h2>
-            <p className="score-percentage">{totalPercentage}% Correct</p>
+            <h2>Final Score: {totalPoints}/{maxTotalPoints} points</h2>
+            <p className="score-percentage">{totalCards}/{totalPossibleCards} cards • {totalPercentage}% of points</p>
           </div>
 
           <div className="round-breakdown">
@@ -347,7 +438,7 @@ function App() {
                   <span className="round-icon">{rules.icon}</span>
                   <span className="round-name">Round {roundNum}</span>
                   <span className="round-score-text">
-                    {score.scored}/{score.total} ({score.percentage}%)
+                    {score.points}/{score.maxPoints} pts ({score.percentage}%)
                   </span>
                 </div>
               );
@@ -455,6 +546,9 @@ function App() {
           ← Back to Menu
         </button>
         <h2>Mini-Miney-Monikers</h2>
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
         <div className="timer-section">
           <div className="timer-display" style={{
             color: timeLeft <= 10 ? '#ef4444' : 'white',
@@ -476,6 +570,11 @@ function App() {
             <button className="timer-button reset" onClick={resetTimer}>
               Reset
             </button>
+            {gameMode === 'monikers' && currentCard && (
+              <button className="timer-button next-round" onClick={completeRound}>
+                End Round →
+              </button>
+            )}
           </div>
           {timeLeft === 0 && (
             <div className="score-display">
@@ -493,16 +592,29 @@ function App() {
           </div>
           <div className="round-description-inline">{roundRules.description}</div>
           <div className="round-score-tracker">
-            Score: {scoredCards.length}/{deckForRounds.length}
+            Score: {calculatePoints(scoredCards)}/{calculateMaxPoints(deckForRounds)} pts ({scoredCards.length}/{deckForRounds.length} cards)
           </div>
         </div>
+      )}
+
+      {gameMode === 'quick' && gameStarted && (
+        <ScoreBoard
+          score={scoredCards.length}
+          skippedCount={skippedCards.length}
+          onReviewSkipped={() => setShowSkippedModal(true)}
+        />
       )}
 
       {currentCard && (
         <div className="card-container">
           <div
-            className="game-card"
-            style={{ borderColor: getDifficultyColor(currentCard.difficulty) }}
+            className={`game-card ${animationClass}`}
+            style={{
+              borderColor: getDifficultyColor(currentCard.difficulty),
+              transform: gameMode === 'quick' && isSwiping ? `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)` : '',
+              opacity: gameMode === 'quick' && swipeDirection ? 0.7 : 1
+            }}
+            {...(gameMode === 'quick' ? handlers : {})}
           >
             <div className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}>
               Level {currentCard.difficulty}
@@ -544,8 +656,18 @@ function App() {
       {gameMode === 'monikers' && !currentCard && timeLeft === 0 && (
         <div className="round-complete-message">
           <h2>Round {currentRound} Complete!</h2>
-          <p>You scored {scoredCards.length} out of {deckForRounds.length} cards!</p>
+          <p>You scored {calculatePoints(scoredCards)}/{calculateMaxPoints(deckForRounds)} points ({scoredCards.length}/{deckForRounds.length} cards)!</p>
         </div>
+      )}
+
+      {showSkippedModal && (
+        <SkippedCardsModal
+          skippedCards={skippedCards}
+          onClose={() => setShowSkippedModal(false)}
+          onSelectCard={handleReplayCard}
+          getDifficultyColor={getDifficultyColor}
+          getDifficultyStars={getDifficultyStars}
+        />
       )}
     </div>
   );

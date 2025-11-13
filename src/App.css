@@ -187,6 +187,8 @@ body {
 .timer-controls {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .timer-button {
@@ -229,6 +231,16 @@ body {
   transform: translateY(-2px);
 }
 
+.timer-button.next-round {
+  background: #8b5cf6;
+  color: white;
+}
+
+.timer-button.next-round:hover {
+  background: #7c3aed;
+  transform: translateY(-2px);
+}
+
 .score-display {
   font-size: 1.1rem;
   font-weight: bold;
@@ -254,6 +266,13 @@ body {
   border: 2px solid;
   position: relative;
   animation: cardAppear 0.3s ease-out;
+  transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  cursor: grab;
+  user-select: none;
+}
+
+.game-card:active {
+  cursor: grabbing;
 }
 
 @keyframes cardAppear {
@@ -683,6 +702,72 @@ body {
 .round-complete-message p {
   color: #a0a0a0;
   font-size: 1.2rem;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Swipe Animations */
+.card-swipe-left {
+  animation: swipeLeft 0.3s ease-out;
+}
+
+.card-swipe-right {
+  animation: swipeRight 0.3s ease-out;
+}
+
+@keyframes swipeLeft {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-300px, 50px) rotate(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipeRight {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(300px, 50px) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+/* Dark Theme Variables */
+:root[data-theme="dark"] {
+  --background-gradient: linear-gradient(135deg, #0a0a0f 0%, #111118 50%, #1a1a2e 100%);
+  --card-background: #0e0e14;
+  --text-color: #f0f0f0;
+  --text-secondary: #b0b0b0;
+}
+
+:root[data-theme="light"] {
+  --background-gradient: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
+  --card-background: #ffffff;
+  --text-color: #1a1a1a;
+  --text-secondary: #666666;
 }
 
 /* Responsive Design */
