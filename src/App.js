@@ -197,6 +197,16 @@ function App() {
     return shuffled;
   };
 
+  // Calculate points from array of cards based on difficulty
+  const calculatePoints = (cards) => {
+    return cards.reduce((total, card) => total + card.difficulty, 0);
+  };
+
+  // Calculate max possible points from deck
+  const calculateMaxPoints = (deck) => {
+    return deck.reduce((total, card) => total + card.difficulty, 0);
+  };
+
   // Initialize deck for Monikers mode
   const initializeDeck = () => {
     let availableCards = selectedDifficulty === 'all'
@@ -248,11 +258,16 @@ function App() {
 
   // Complete current round
   const completeRound = () => {
+    const points = calculatePoints(scoredCards);
+    const maxPoints = calculateMaxPoints(deckForRounds);
+
     const roundScore = {
       scored: scoredCards.length,
       skipped: skippedCards.length,
       total: deckForRounds.length,
-      percentage: Math.round((scoredCards.length / deckForRounds.length) * 100)
+      points: points,
+      maxPoints: maxPoints,
+      percentage: Math.round((points / maxPoints) * 100)
     };
 
     setRoundScores({
@@ -303,8 +318,8 @@ function App() {
         <div className="transition-screen">
           <h1>Round {currentRound} Complete!</h1>
           <div className="round-score">
-            <h2>Your Score: {prevRoundScore.scored}/{prevRoundScore.total}</h2>
-            <p className="score-percentage">{prevRoundScore.percentage}% Correct</p>
+            <h2>Your Score: {prevRoundScore.points}/{prevRoundScore.maxPoints} points</h2>
+            <p className="score-percentage">{prevRoundScore.scored}/{prevRoundScore.total} cards • {prevRoundScore.percentage}% of points</p>
           </div>
 
           <div className="next-round-info">
@@ -324,17 +339,19 @@ function App() {
 
   // Show final score screen
   if (showFinalScore) {
-    const totalScored = Object.values(roundScores).reduce((sum, r) => sum + r.scored, 0);
-    const totalCards = deckForRounds.length * 3;
-    const totalPercentage = Math.round((totalScored / totalCards) * 100);
+    const totalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.points, 0);
+    const maxTotalPoints = Object.values(roundScores).reduce((sum, r) => sum + r.maxPoints, 0);
+    const totalPercentage = Math.round((totalPoints / maxTotalPoints) * 100);
+    const totalCards = Object.values(roundScores).reduce((sum, r) => sum + r.scored, 0);
+    const totalPossibleCards = deckForRounds.length * 3;
 
     return (
       <div className="App">
         <div className="final-score-screen">
           <h1>🎉 Game Complete! 🎉</h1>
           <div className="total-score">
-            <h2>Final Score: {totalScored}/{totalCards}</h2>
-            <p className="score-percentage">{totalPercentage}% Correct</p>
+            <h2>Final Score: {totalPoints}/{maxTotalPoints} points</h2>
+            <p className="score-percentage">{totalCards}/{totalPossibleCards} cards • {totalPercentage}% of points</p>
           </div>
 
           <div className="round-breakdown">
@@ -347,7 +364,7 @@ function App() {
                   <span className="round-icon">{rules.icon}</span>
                   <span className="round-name">Round {roundNum}</span>
                   <span className="round-score-text">
-                    {score.scored}/{score.total} ({score.percentage}%)
+                    {score.points}/{score.maxPoints} pts ({score.percentage}%)
                   </span>
                 </div>
               );
@@ -476,6 +493,11 @@ function App() {
             <button className="timer-button reset" onClick={resetTimer}>
               Reset
             </button>
+            {gameMode === 'monikers' && currentCard && (
+              <button className="timer-button next-round" onClick={completeRound}>
+                End Round →
+              </button>
+            )}
           </div>
           {timeLeft === 0 && (
             <div className="score-display">
@@ -493,7 +515,7 @@ function App() {
           </div>
           <div className="round-description-inline">{roundRules.description}</div>
           <div className="round-score-tracker">
-            Score: {scoredCards.length}/{deckForRounds.length}
+            Score: {calculatePoints(scoredCards)}/{calculateMaxPoints(deckForRounds)} pts ({scoredCards.length}/{deckForRounds.length} cards)
           </div>
         </div>
       )}
@@ -544,7 +566,7 @@ function App() {
       {gameMode === 'monikers' && !currentCard && timeLeft === 0 && (
         <div className="round-complete-message">
           <h2>Round {currentRound} Complete!</h2>
-          <p>You scored {scoredCards.length} out of {deckForRounds.length} cards!</p>
+          <p>You scored {calculatePoints(scoredCards)}/{calculateMaxPoints(deckForRounds)} points ({scoredCards.length}/{deckForRounds.length} cards)!</p>
         </div>
       )}
     </div>

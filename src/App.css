@@ -187,6 +187,8 @@ body {
 .timer-controls {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .timer-button {
@@ -226,6 +228,16 @@ body {
 
 .timer-button.reset:hover {
   background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.timer-button.next-round {
+  background: #8b5cf6;
+  color: white;
+}
+
+.timer-button.next-round:hover {
+  background: #7c3aed;
   transform: translateY(-2px);
 }
 
