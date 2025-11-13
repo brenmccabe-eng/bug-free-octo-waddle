@@ -16,11 +16,18 @@
   gap: 4px;
 }
 
+.score-item.scored .score-value {
+  color: #4ade80;
+}
+
+.score-item.skipped .score-value {
+  color: #fbbf24;
+}
+
 .score-label {
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
@@ -31,21 +38,7 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.score-value.scored {
-  color: #4ade80;
-}
-
-.score-value.skipped {
-  color: #fbbf24;
-}
-
-.score-divider {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 300;
-}
-
-.review-skipped-btn {
+.review-skipped-button {
   background: rgba(251, 191, 36, 0.3);
   color: white;
   border: 2px solid #fbbf24;
@@ -58,7 +51,7 @@
   margin-left: 10px;
 }
 
-.review-skipped-btn:hover {
+.review-skipped-button:hover {
   background: rgba(251, 191, 36, 0.5);
   transform: translateY(-2px);
 }
@@ -77,7 +70,7 @@
     font-size: 0.75rem;
   }
 
-  .review-skipped-btn {
+  .review-skipped-button {
     font-size: 0.8rem;
     padding: 6px 12px;
   }
