@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { cards } from './data/cards';
 import { useSwipe } from './hooks/useSwipe';
@@ -14,6 +14,24 @@ function App() {
   const [showDefinition, setShowDefinition] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [gameStarted, setGameStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [cardsCompleted, setCardsCompleted] = useState(0);
+
+  // Timer countdown effect
+  useEffect(() => {
+    let interval = null;
+    if (timerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((time) => time - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setTimerRunning(false);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning, timeLeft]);
 
   // Swipe scoring state
   const [scoredCards, setScoredCards] = useState([]);
@@ -24,7 +42,7 @@ function App() {
 
   const getRandomCard = () => {
     let availableCards = cards.filter(card => !usedCards.includes(card.id));
-    
+
     // Filter by difficulty if not 'all'
     if (selectedDifficulty !== 'all') {
       availableCards = availableCards.filter(
@@ -35,8 +53,8 @@ function App() {
     if (availableCards.length === 0) {
       // Reset if all cards have been used
       setUsedCards([]);
-      availableCards = selectedDifficulty === 'all' 
-        ? cards 
+      availableCards = selectedDifficulty === 'all'
+        ? cards
         : cards.filter(card => card.difficulty === parseInt(selectedDifficulty));
     }
 
@@ -44,6 +62,11 @@ function App() {
     const selectedCard = availableCards[randomIndex];
     setCurrentCard(selectedCard);
     setUsedCards([...usedCards, selectedCard.id]);
+
+    // Increment cards completed if timer is running
+    if (timerRunning && currentCard) {
+      setCardsCompleted(prev => prev + 1);
+    }
   };
 
   const startGame = () => {
@@ -58,6 +81,25 @@ function App() {
     setScoredCards([]);
     setSkippedCards([]);
     setAnimationClass('');
+    setTimeLeft(60);
+    setTimerRunning(false);
+    setCardsCompleted(0);
+  };
+
+  const startTimer = () => {
+    setTimeLeft(60);
+    setCardsCompleted(0);
+    setTimerRunning(true);
+  };
+
+  const pauseTimer = () => {
+    setTimerRunning(false);
+  };
+
+  const resetTimer = () => {
+    setTimeLeft(60);
+    setTimerRunning(false);
+    setCardsCompleted(0);
   };
 
   // Swipe handlers
@@ -107,6 +149,10 @@ function App() {
     setUsedCards(usedCards.filter(id => id !== card.id));
   };
 
+  const getDifficultyStars = (difficulty) => {
+    return '⭐'.repeat(difficulty);
+  };
+
   // Initialize swipe hook
   const { handlers, swipeDirection, dragOffset } = useSwipe(
     handleSwipeLeft,
@@ -121,15 +167,11 @@ function App() {
 
   const getDifficultyColor = (difficulty) => {
     switch(difficulty) {
-      case 1: return '#4ade80';
-      case 2: return '#fbbf24';
-      case 3: return '#f87171';
-      default: return '#94a3b8';
+      case 1: return '#06b6d4';
+      case 2: return '#8b5cf6';
+      case 3: return '#ec4899';
+      default: return '#64748b';
     }
-  };
-
-  const getDifficultyStars = (difficulty) => {
-    return '⭐'.repeat(difficulty);
   };
 
   if (!gameStarted) {
@@ -151,21 +193,21 @@ function App() {
               >
                 All Cards
               </button>
-              <button 
+              <button
                 className={selectedDifficulty === '1' ? 'selected' : ''}
                 onClick={() => setSelectedDifficulty('1')}
                 style={{ borderColor: getDifficultyColor(1) }}
               >
                 ⭐ Easy
               </button>
-              <button 
+              <button
                 className={selectedDifficulty === '2' ? 'selected' : ''}
                 onClick={() => setSelectedDifficulty('2')}
                 style={{ borderColor: getDifficultyColor(2) }}
               >
                 ⭐⭐ Medium
               </button>
-              <button 
+              <button
                 className={selectedDifficulty === '3' ? 'selected' : ''}
                 onClick={() => setSelectedDifficulty('3')}
                 style={{ borderColor: getDifficultyColor(3) }}
@@ -207,6 +249,34 @@ function App() {
           skippedCount={skippedCards.length}
           onReviewSkipped={() => setShowSkippedModal(true)}
         />
+        <div className="timer-section">
+          <div className="timer-display" style={{
+            color: timeLeft <= 10 ? '#ef4444' : 'white',
+            fontSize: timeLeft <= 10 ? '2rem' : '1.5rem',
+            fontWeight: 'bold'
+          }}>
+            {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          </div>
+          <div className="timer-controls">
+            {!timerRunning ? (
+              <button className="timer-button start" onClick={startTimer}>
+                Start Timer
+              </button>
+            ) : (
+              <button className="timer-button pause" onClick={pauseTimer}>
+                Pause
+              </button>
+            )}
+            <button className="timer-button reset" onClick={resetTimer}>
+              Reset
+            </button>
+          </div>
+          {timeLeft === 0 && (
+            <div className="score-display">
+              Cards Completed: {cardsCompleted}
+            </div>
+          )}
+        </div>
       </div>
 
       {skippedCards.length > 0 && (
@@ -226,7 +296,7 @@ function App() {
             }}
           >
             <div className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}>
-              {getDifficultyStars(currentCard.difficulty)} Difficulty {currentCard.difficulty}
+              {getDifficultyStars(currentCard.difficulty)} Level {currentCard.difficulty}
             </div>
 
             <h1 className="card-name">{currentCard.name}</h1>
