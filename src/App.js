@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { cards } from './data/cards';
+import { useSwipe } from './hooks/useSwipe';
+import { useTheme } from './hooks/useTheme';
+import ScoreBoard from './components/ScoreBoard';
+import SkippedCardsModal from './components/SkippedCardsModal';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+
   // Basic game state
   const [currentCard, setCurrentCard] = useState(null);
   const [usedCards, setUsedCards] = useState([]);
@@ -22,6 +28,11 @@ function App() {
   const [skippedCards, setSkippedCards] = useState([]);
   const [showTransition, setShowTransition] = useState(false);
   const [showFinalScore, setShowFinalScore] = useState(false);
+
+  // Swipe animation state
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationClass, setAnimationClass] = useState('');
+  const [showSkippedModal, setShowSkippedModal] = useState(false);
 
   // Function to play buzzer sound when timer ends
   const playBuzzer = () => {
@@ -318,6 +329,45 @@ function App() {
     }
   };
 
+  const getDifficultyStars = (difficulty) => {
+    return '⭐'.repeat(difficulty);
+  };
+
+  // Swipe handlers for Quick Play mode
+  const handleSwipeRight = () => {
+    if (isAnimating || !currentCard || gameMode === 'monikers') return;
+    setIsAnimating(true);
+    setAnimationClass('card-swipe-right');
+    setScoredCards([...scoredCards, currentCard]);
+    setTimeout(() => {
+      getRandomCard();
+      setAnimationClass('');
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleSwipeLeft = () => {
+    if (isAnimating || !currentCard || gameMode === 'monikers') return;
+    setIsAnimating(true);
+    setAnimationClass('card-swipe-left');
+    setSkippedCards([...skippedCards, currentCard]);
+    setTimeout(() => {
+      getRandomCard();
+      setAnimationClass('');
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  // Initialize swipe hook
+  const { handlers, swipeDirection, dragOffset, isSwiping } = useSwipe(handleSwipeLeft, handleSwipeRight, 100);
+
+  // Handle replaying a skipped card
+  const handleReplayCard = (card) => {
+    setCurrentCard(card);
+    setSkippedCards(skippedCards.filter(c => c.id !== card.id));
+    setShowSkippedModal(false);
+  };
+
   // Show round transition screen
   if (showTransition) {
     const roundRules = getRoundRules(currentRound + 1);
@@ -496,6 +546,9 @@ function App() {
           ← Back to Menu
         </button>
         <h2>Mini-Miney-Monikers</h2>
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
         <div className="timer-section">
           <div className="timer-display" style={{
             color: timeLeft <= 10 ? '#ef4444' : 'white',
@@ -544,11 +597,24 @@ function App() {
         </div>
       )}
 
+      {gameMode === 'quick' && gameStarted && (
+        <ScoreBoard
+          score={scoredCards.length}
+          skippedCount={skippedCards.length}
+          onReviewSkipped={() => setShowSkippedModal(true)}
+        />
+      )}
+
       {currentCard && (
         <div className="card-container">
           <div
-            className="game-card"
-            style={{ borderColor: getDifficultyColor(currentCard.difficulty) }}
+            className={`game-card ${animationClass}`}
+            style={{
+              borderColor: getDifficultyColor(currentCard.difficulty),
+              transform: gameMode === 'quick' && isSwiping ? `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)` : '',
+              opacity: gameMode === 'quick' && swipeDirection ? 0.7 : 1
+            }}
+            {...(gameMode === 'quick' ? handlers : {})}
           >
             <div className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}>
               Level {currentCard.difficulty}
@@ -592,6 +658,16 @@ function App() {
           <h2>Round {currentRound} Complete!</h2>
           <p>You scored {calculatePoints(scoredCards)}/{calculateMaxPoints(deckForRounds)} points ({scoredCards.length}/{deckForRounds.length} cards)!</p>
         </div>
+      )}
+
+      {showSkippedModal && (
+        <SkippedCardsModal
+          skippedCards={skippedCards}
+          onClose={() => setShowSkippedModal(false)}
+          onSelectCard={handleReplayCard}
+          getDifficultyColor={getDifficultyColor}
+          getDifficultyStars={getDifficultyStars}
+        />
       )}
     </div>
   );
