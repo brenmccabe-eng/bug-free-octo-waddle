@@ -5,6 +5,7 @@ import { useSwipe } from './hooks/useSwipe';
 import { useTheme } from './hooks/useTheme';
 import ScoreBoard from './components/ScoreBoard';
 import SkippedCardsModal from './components/SkippedCardsModal';
+import CardManagement from './components/CardManagement';
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -42,6 +43,10 @@ function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationClass, setAnimationClass] = useState('');
   const [showSkippedModal, setShowSkippedModal] = useState(false);
+
+  // Custom cards state
+  const [customCards, setCustomCards] = useState({});
+  const [showCardManagement, setShowCardManagement] = useState(false);
 
   // Function to play buzzer sound when timer ends
   const playBuzzer = () => {
@@ -129,8 +134,53 @@ function App() {
     };
   }, [timerRunning, timeLeft, gameMode]);
 
+  // Load custom cards from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('customCards');
+    if (saved) {
+      try {
+        setCustomCards(JSON.parse(saved));
+      } catch (err) {
+        console.error('Failed to load custom cards:', err);
+      }
+    }
+  }, []);
+
+  // Save custom cards to localStorage whenever they change
+  const handleSaveCustomCards = (newCustomCards) => {
+    setCustomCards(newCustomCards);
+    localStorage.setItem('customCards', JSON.stringify(newCustomCards));
+  };
+
+  // Export custom cards to JSON file
+  const handleExportCards = () => {
+    const dataStr = JSON.stringify(customCards, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `custom-cards-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Get all available cards (default + custom for all teams)
+  const getAllAvailableCards = () => {
+    let allCards = [...cards];
+
+    // Add all custom cards from all teams
+    Object.values(customCards).forEach(teamCards => {
+      if (Array.isArray(teamCards)) {
+        allCards = [...allCards, ...teamCards];
+      }
+    });
+
+    return allCards;
+  };
+
   const getRandomCard = () => {
-    let availableCards = cards.filter(card => !usedCards.includes(card.id));
+    const allCards = getAllAvailableCards();
+    let availableCards = allCards.filter(card => !usedCards.includes(card.id));
 
     // Filter by difficulty if not 'all'
     if (selectedDifficulty !== 'all') {
@@ -143,8 +193,8 @@ function App() {
       // Reset if all cards have been used
       setUsedCards([]);
       availableCards = selectedDifficulty === 'all'
-        ? cards
-        : cards.filter(card => card.difficulty === parseInt(selectedDifficulty));
+        ? allCards
+        : allCards.filter(card => card.difficulty === parseInt(selectedDifficulty));
     }
 
     const randomIndex = Math.floor(Math.random() * availableCards.length);
@@ -249,9 +299,10 @@ function App() {
 
   // Initialize deck for Monikers mode
   const initializeDeck = () => {
+    const allCards = getAllAvailableCards();
     let availableCards = selectedDifficulty === 'all'
-      ? cards
-      : cards.filter(card => card.difficulty === parseInt(selectedDifficulty));
+      ? allCards
+      : allCards.filter(card => card.difficulty === parseInt(selectedDifficulty));
 
     const shuffled = shuffleArray(availableCards);
     setDeckForRounds(shuffled);
@@ -640,9 +691,33 @@ function App() {
             <button className="back-button" onClick={resetGame}>
               Back to Menu
             </button>
+            {Object.values(customCards).reduce((sum, cards) => sum + cards.length, 0) > 0 && (
+              <button
+                className="mode-button"
+                onClick={handleExportCards}
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  marginTop: '10px'
+                }}
+              >
+                📥 Export Custom Cards
+              </button>
+            )}
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Show card management screen
+  if (showCardManagement) {
+    return (
+      <CardManagement
+        numberOfTeams={numberOfTeams}
+        customCards={customCards}
+        onSaveCards={handleSaveCustomCards}
+        onBack={() => setShowCardManagement(false)}
+      />
     );
   }
 
@@ -699,6 +774,27 @@ function App() {
               <option value={5}>5 Teams</option>
               <option value={6}>6 Teams</option>
             </select>
+          </div>
+
+          <div className="custom-cards-section" style={{ margin: '20px 0' }}>
+            <button
+              className="mode-button"
+              onClick={() => setShowCardManagement(true)}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                width: '100%',
+                maxWidth: '300px',
+                margin: '0 auto',
+                display: 'block'
+              }}
+            >
+              📝 Manage Custom Cards
+              {Object.values(customCards).reduce((sum, cards) => sum + cards.length, 0) > 0 && (
+                <span style={{ marginLeft: '8px', fontSize: '0.9em' }}>
+                  ({Object.values(customCards).reduce((sum, cards) => sum + cards.length, 0)} cards)
+                </span>
+              )}
+            </button>
           </div>
 
           <div className="mode-selector">
