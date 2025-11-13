@@ -35,6 +35,9 @@ function App() {
   const [teamScores, setTeamScores] = useState({});
   const [showTeamTransition, setShowTeamTransition] = useState(false);
 
+  // Track cards used across ALL teams in the current round
+  const [roundUsedCards, setRoundUsedCards] = useState([]);
+
   // Swipe animation state
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationClass, setAnimationClass] = useState('');
@@ -180,6 +183,7 @@ function App() {
       setShowTeamTransition(false);
       setCurrentCard(deck[0]);
       setUsedCards([deck[0].id]);
+      setRoundUsedCards([deck[0].id]); // Track first card at round level
     } else {
       // Quick play mode
       getRandomCard();
@@ -201,6 +205,7 @@ function App() {
     setTeamScores({});
     setScoredCards([]);
     setSkippedCards([]);
+    setRoundUsedCards([]);
     setShowTransition(false);
     setShowFinalScore(false);
     setShowTeamTransition(false);
@@ -273,8 +278,8 @@ function App() {
   // Get next card in Monikers round
   const getNextCardInRound = () => {
     if (gameMode === 'monikers') {
-      const allUsedIds = [...scoredCards.map(c => c.id), ...skippedCards.map(c => c.id), ...usedCards];
-      const availableCards = deckForRounds.filter(card => !allUsedIds.includes(card.id));
+      // Filter out cards used by ANY team in this round
+      const availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
 
       if (availableCards.length === 0) {
         // Round complete!
@@ -284,7 +289,9 @@ function App() {
       } else {
         const nextCard = availableCards[0];
         setCurrentCard(nextCard);
+        // Add to both usedCards (for current team) and roundUsedCards (for all teams)
         setUsedCards([...usedCards, nextCard.id]);
+        setRoundUsedCards([...roundUsedCards, nextCard.id]);
       }
     } else {
       getRandomCard();
@@ -371,7 +378,7 @@ function App() {
     setCurrentTeam(currentTeam + 1);
     setShowTeamTransition(false);
 
-    // Reset turn state
+    // Reset turn state (but keep roundUsedCards to prevent card repetition)
     setScoredCards([]);
     setSkippedCards([]);
     setUsedCards([]);
@@ -379,10 +386,13 @@ function App() {
     setCardsCompleted(0);
     setTimerRunning(false);
 
-    // Start with first card from the deck
-    if (deckForRounds.length > 0) {
-      setCurrentCard(deckForRounds[0]);
-      setUsedCards([deckForRounds[0].id]);
+    // Start with first available card from the deck that hasn't been used this round
+    const availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
+    if (availableCards.length > 0) {
+      const firstCard = availableCards[0];
+      setCurrentCard(firstCard);
+      setUsedCards([firstCard.id]);
+      setRoundUsedCards([...roundUsedCards, firstCard.id]);
     }
   };
 
@@ -395,10 +405,11 @@ function App() {
     const newDeck = shuffleArray(scoredCards);
     setDeckForRounds(newDeck);
 
-    // Reset round state
+    // Reset round state (including roundUsedCards for the new round)
     setScoredCards([]);
     setSkippedCards([]);
     setUsedCards([]);
+    setRoundUsedCards([]);
     setTimeLeft(60);
     setCardsCompleted(0);
     setShowTransition(false);
@@ -407,6 +418,7 @@ function App() {
     if (newDeck.length > 0) {
       setCurrentCard(newDeck[0]);
       setUsedCards([newDeck[0].id]);
+      setRoundUsedCards([newDeck[0].id]); // Track first card of new round
     } else {
       // If no cards were scored, show final score
       setCurrentCard(null);
