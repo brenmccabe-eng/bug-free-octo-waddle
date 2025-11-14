@@ -297,16 +297,15 @@ body {
 }
 
 .game-card {
-  background: #1e1e2e;
   border-radius: 15px;
   padding: 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1);
   min-width: 500px;
   max-width: 600px;
-  border: 2px solid;
+  border: 3px solid;
   position: relative;
   animation: cardAppear 0.3s ease-out;
-  transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  transition: transform 0.1s ease-out, opacity 0.1s ease-out, background-color 0.2s ease;
   cursor: grab;
   user-select: none;
 }

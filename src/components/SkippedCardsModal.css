@@ -84,18 +84,18 @@
 }
 
 .skipped-card-item {
-  background: var(--input-bg);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
   border-left: 5px solid;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .skipped-card-item:hover {
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .skipped-card-header {

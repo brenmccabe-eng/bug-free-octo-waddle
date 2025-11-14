@@ -479,10 +479,28 @@ function App() {
 
   const getDifficultyColor = (difficulty) => {
     switch(difficulty) {
-      case 1: return '#06b6d4';
-      case 2: return '#8b5cf6';
-      case 3: return '#ec4899';
+      case 1: return '#ffffff'; // White background for Level 1
+      case 2: return '#f97316'; // Orange background for Level 2
+      case 3: return '#dc2626'; // Red background for Level 3
       default: return '#64748b';
+    }
+  };
+
+  const getDifficultyTextColor = (difficulty) => {
+    switch(difficulty) {
+      case 1: return '#1e1e2e'; // Dark text for white background
+      case 2: return '#ffffff'; // White text for orange background
+      case 3: return '#ffffff'; // White text for red background
+      default: return '#e0e0e0';
+    }
+  };
+
+  const getDifficultyBadgeColor = (difficulty) => {
+    switch(difficulty) {
+      case 1: return '#6b7280'; // Gray badge for white card
+      case 2: return '#c2410c'; // Darker orange for badge
+      case 3: return '#991b1b'; // Darker red for badge
+      default: return '#475569';
     }
   };
 
@@ -912,28 +930,45 @@ function App() {
           <div
             className={`game-card ${animationClass}`}
             style={{
+              backgroundColor: getDifficultyColor(currentCard.difficulty),
               borderColor: getDifficultyColor(currentCard.difficulty),
+              color: getDifficultyTextColor(currentCard.difficulty),
               transform: gameMode === 'quick' && isSwiping ? `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)` : '',
               opacity: gameMode === 'quick' && swipeDirection ? 0.7 : 1
             }}
             {...(gameMode === 'quick' ? handlers : {})}
           >
-            <div className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}>
+            <div
+              className="difficulty-badge"
+              style={{
+                backgroundColor: getDifficultyBadgeColor(currentCard.difficulty),
+                color: '#ffffff'
+              }}
+            >
               Level {currentCard.difficulty}
             </div>
 
-            <h1 className="card-name">{currentCard.name}</h1>
+            <h1 className="card-name" style={{ color: getDifficultyTextColor(currentCard.difficulty) }}>
+              {currentCard.name}
+            </h1>
 
             <div className="definition-section">
               <button
                 className="toggle-definition"
                 onClick={() => setShowDefinition(!showDefinition)}
+                style={{
+                  backgroundColor: currentCard.difficulty === 1 ? '#f3f4f6' : 'rgba(255, 255, 255, 0.2)',
+                  color: getDifficultyTextColor(currentCard.difficulty),
+                  border: `1px solid ${currentCard.difficulty === 1 ? '#d1d5db' : 'rgba(255, 255, 255, 0.3)'}`
+                }}
               >
                 {showDefinition ? 'Hide Hint' : 'Show Hint'}
               </button>
 
               {showDefinition && (
-                <p className="card-definition">{currentCard.definition}</p>
+                <p className="card-definition" style={{ color: getDifficultyTextColor(currentCard.difficulty) }}>
+                  {currentCard.definition}
+                </p>
               )}
             </div>
           </div>
@@ -968,6 +1003,8 @@ function App() {
           onClose={() => setShowSkippedModal(false)}
           onSelectCard={handleReplayCard}
           getDifficultyColor={getDifficultyColor}
+          getDifficultyTextColor={getDifficultyTextColor}
+          getDifficultyBadgeColor={getDifficultyBadgeColor}
           getDifficultyStars={getDifficultyStars}
         />
       )}
