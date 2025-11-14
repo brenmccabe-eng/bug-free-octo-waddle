@@ -9,6 +9,7 @@ const CardManagement = ({
 }) => {
   const { theme } = useTheme();
   const [selectedTeam, setSelectedTeam] = useState(1);
+  const [targetTeam, setTargetTeam] = useState(numberOfTeams >= 2 ? 2 : 1);
   const [cardName, setCardName] = useState('');
   const [cardDefinition, setCardDefinition] = useState('');
   const [cardDifficulty, setCardDifficulty] = useState(1);
@@ -19,24 +20,44 @@ const CardManagement = ({
   // Get cards for selected team
   const teamCards = customCards[`team${selectedTeam}`] || [];
 
+  // Get available target teams (all teams except the creating team)
+  const getAvailableTargetTeams = () => {
+    return Array.from({ length: numberOfTeams }, (_, i) => i + 1).filter(
+      teamNum => teamNum !== selectedTeam
+    );
+  };
+
+  // Update target team when selected team changes
+  React.useEffect(() => {
+    const availableTeams = Array.from({ length: numberOfTeams }, (_, i) => i + 1).filter(
+      teamNum => teamNum !== selectedTeam
+    );
+    if (availableTeams.length > 0 && !availableTeams.includes(targetTeam)) {
+      setTargetTeam(availableTeams[0]);
+    }
+  }, [selectedTeam, numberOfTeams, targetTeam]);
+
   const handleAddCard = () => {
     if (!cardName.trim()) {
       alert('Please enter a card name');
       return;
     }
 
+    const targetTeamCards = customCards[`team${targetTeam}`] || [];
+
     const newCard = {
-      id: `custom-team${selectedTeam}-${Date.now()}`,
+      id: `custom-team${targetTeam}-${Date.now()}`,
       name: cardName.trim(),
       difficulty: cardDifficulty,
       definition: cardDefinition.trim() || 'Custom card',
-      team: selectedTeam,
-      custom: true
+      team: targetTeam,
+      custom: true,
+      createdBy: selectedTeam // Track which team created the card
     };
 
     const updatedCards = {
       ...customCards,
-      [`team${selectedTeam}`]: [...teamCards, newCard]
+      [`team${targetTeam}`]: [...targetTeamCards, newCard]
     };
 
     onSaveCards(updatedCards);
@@ -152,19 +173,29 @@ const CardManagement = ({
                   setSelectedTeam(teamNum);
                   setShowManageCards(false);
                 }}
-                className={`p-4 rounded-xl transition-all duration-200 ${
+                className={`p-5 rounded-xl transition-all duration-200 transform hover:scale-105 ${
                   selectedTeam === teamNum
                     ? theme === 'dark'
-                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl scale-105'
-                      : 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-105 text-white'
+                      ? 'bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 shadow-2xl scale-105 border-2 border-blue-500'
+                      : 'bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 shadow-2xl scale-105 text-white border-2 border-blue-400'
                     : theme === 'dark'
-                    ? 'bg-gray-800 hover:bg-gray-750 shadow-lg hover:shadow-xl'
-                    : 'bg-white hover:bg-gray-50 shadow-md hover:shadow-lg'
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-850 hover:from-gray-750 hover:to-gray-800 shadow-lg hover:shadow-xl border border-gray-700'
+                    : 'bg-gradient-to-br from-white to-gray-50 hover:from-gray-50 hover:to-white shadow-md hover:shadow-lg border border-gray-200'
                 }`}
               >
-                <div className="text-sm font-medium opacity-90 mb-1">Team {teamNum}</div>
-                <div className="text-3xl font-bold">{teamCardCount}</div>
-                <div className="text-xs opacity-75 mt-1">
+                <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${
+                  selectedTeam === teamNum
+                    ? 'text-blue-100'
+                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                  Team {teamNum}
+                </div>
+                <div className="text-4xl font-bold mb-1">{teamCardCount}</div>
+                <div className={`text-xs font-medium ${
+                  selectedTeam === teamNum
+                    ? 'text-blue-200'
+                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   {teamCardCount === 1 ? 'card' : 'cards'}
                 </div>
               </button>
@@ -180,7 +211,7 @@ const CardManagement = ({
               ? 'bg-gray-800 shadow-2xl'
               : 'bg-white shadow-xl'
           }`}>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <span className="text-2xl">➕</span>
               Add Card
               <span className={`ml-auto text-sm font-semibold px-3 py-1 rounded-full ${
@@ -188,11 +219,46 @@ const CardManagement = ({
                   ? 'bg-blue-900 text-blue-200'
                   : 'bg-blue-100 text-blue-700'
               }`}>
-                Team {selectedTeam}
+                Creating as Team {selectedTeam}
               </span>
             </h2>
 
+            <div className={`mb-5 p-4 rounded-xl ${
+              theme === 'dark'
+                ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-2 border-purple-700/50'
+                : 'bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200'
+            }`}>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                💡 <span className="font-semibold">Tip:</span> Cards you create will be assigned to other teams to guess. You won't receive your own cards!
+              </p>
+            </div>
+
             <div className="space-y-4">
+              <div>
+                <label className="block mb-2 font-semibold text-sm flex items-center gap-2">
+                  <span className="text-lg">🎯</span>
+                  Assign Card To *
+                </label>
+                <select
+                  value={targetTeam}
+                  onChange={(e) => setTargetTeam(Number(e.target.value))}
+                  className={`w-full px-4 py-3 rounded-xl transition-all ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-2 border-gray-600 focus:border-purple-500'
+                      : 'bg-gray-50 border-2 border-gray-200 focus:border-purple-500'
+                  } outline-none cursor-pointer font-semibold`}
+                >
+                  {getAvailableTargetTeams().map(teamNum => (
+                    <option key={teamNum} value={teamNum}>
+                      Team {teamNum}
+                    </option>
+                  ))}
+                </select>
+                <p className={`mt-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  This card will be added to Team {targetTeam}'s deck
+                </p>
+              </div>
+
               <div>
                 <label className="block mb-2 font-semibold text-sm">Card Name *</label>
                 <input
@@ -242,9 +308,9 @@ const CardManagement = ({
 
               <button
                 onClick={handleAddCard}
-                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
               >
-                Add Card to Team {selectedTeam}
+                ✨ Add Card to Team {targetTeam}
               </button>
             </div>
           </div>
@@ -254,20 +320,23 @@ const CardManagement = ({
             {/* Import/Export Section */}
             <div className={`rounded-2xl p-6 ${
               theme === 'dark'
-                ? 'bg-gray-800 shadow-2xl'
-                : 'bg-white shadow-xl'
+                ? 'bg-gradient-to-br from-gray-800 to-gray-850 shadow-2xl border border-gray-700'
+                : 'bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200'
             }`}>
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                 <span className="text-2xl">💾</span>
                 Import/Export
               </h2>
+              <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                Share your custom cards with others
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${
                     theme === 'dark'
-                      ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl'
-                      : 'bg-purple-500 hover:bg-purple-600 text-white shadow-md hover:shadow-lg'
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg'
                   }`}
                 >
                   📥 Import
@@ -275,12 +344,12 @@ const CardManagement = ({
                 <button
                   onClick={handleExportJSON}
                   disabled={totalCards === 0}
-                  className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 transform ${
                     totalCards === 0
                       ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                       : theme === 'dark'
-                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'
-                      : 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md hover:shadow-lg hover:scale-105'
                   }`}
                 >
                   📤 Export
@@ -294,8 +363,14 @@ const CardManagement = ({
                 />
               </div>
               {showImportError && (
-                <div className="mt-3 p-3 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
-                  <p className="text-red-500 text-sm">{showImportError}</p>
+                <div className={`mt-3 p-3 rounded-lg border ${
+                  theme === 'dark'
+                    ? 'bg-red-900/20 border-red-700'
+                    : 'bg-red-50 border-red-300'
+                }`}>
+                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-red-400' : 'text-red-700'}`}>
+                    ⚠️ {showImportError}
+                  </p>
                 </div>
               )}
             </div>
@@ -303,22 +378,25 @@ const CardManagement = ({
             {/* Manage Cards Section */}
             <div className={`rounded-2xl p-6 ${
               theme === 'dark'
-                ? 'bg-gray-800 shadow-2xl'
-                : 'bg-white shadow-xl'
+                ? 'bg-gradient-to-br from-gray-800 to-gray-850 shadow-2xl border border-gray-700'
+                : 'bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200'
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                   <span className="text-2xl">🎴</span>
                   Manage Cards
                 </h2>
                 <span className={`px-3 py-1 rounded-full text-sm font-bold ${
                   theme === 'dark'
-                    ? 'bg-gray-700 text-gray-300'
-                    : 'bg-gray-200 text-gray-700'
+                    ? 'bg-blue-900 text-blue-200'
+                    : 'bg-blue-100 text-blue-700'
                 }`}>
                   {teamCards.length}
                 </span>
               </div>
+              <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                Cards assigned to Team {selectedTeam}
+              </p>
 
               {teamCards.length === 0 ? (
                 <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -328,58 +406,71 @@ const CardManagement = ({
                 <>
                   <button
                     onClick={() => setShowManageCards(!showManageCards)}
-                    className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                    className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${
                       showManageCards
                         ? theme === 'dark'
-                          ? 'bg-red-600 hover:bg-red-700 text-white'
-                          : 'bg-red-500 hover:bg-red-600 text-white'
+                          ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                          : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
                         : theme === 'dark'
-                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                        ? 'bg-gradient-to-r from-gray-700 to-gray-750 hover:from-gray-650 hover:to-gray-700 text-white'
+                        : 'bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-900'
                     } shadow-md hover:shadow-lg`}
                   >
                     {showManageCards ? '🔒 Hide Cards' : '👁️ View & Edit Cards'}
                   </button>
 
                   {showManageCards && (
-                    <div className="mt-4 space-y-2 max-h-96 overflow-y-auto pr-2">
+                    <div className="mt-4 space-y-3 max-h-96 overflow-y-auto pr-2">
                       {teamCards.map((card, index) => (
                         <div
                           key={card.id}
-                          className={`p-4 rounded-xl transition-all ${
+                          className={`p-4 rounded-xl transition-all transform hover:scale-[1.02] ${
                             theme === 'dark'
-                              ? 'bg-gray-700 hover:bg-gray-650'
-                              : 'bg-gray-50 hover:bg-gray-100'
+                              ? 'bg-gradient-to-r from-gray-700 to-gray-750 hover:from-gray-650 hover:to-gray-700'
+                              : 'bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50'
                           } border-2 ${
                             theme === 'dark' ? 'border-gray-600' : 'border-gray-200'
-                          }`}
+                          } shadow-md hover:shadow-lg`}
                         >
                           <div className="flex justify-between items-start gap-3">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-bold text-lg">{index + 1}.</span>
-                                <span className="font-semibold">{card.name}</span>
-                                <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className={`px-2 py-1 rounded-md text-sm font-bold ${
+                                  theme === 'dark' ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700'
+                                }`}>
+                                  #{index + 1}
+                                </span>
+                                <span className="font-bold text-base">{card.name}</span>
+                                <span className={`text-xs px-2 py-1 rounded-full font-bold shadow-sm ${
                                   card.difficulty === 1
                                     ? 'bg-green-500 text-white'
                                     : card.difficulty === 2
                                     ? 'bg-yellow-500 text-white'
                                     : 'bg-red-500 text-white'
                                 }`}>
-                                  {card.difficulty === 1 ? '⭐' : card.difficulty === 2 ? '⭐⭐' : '⭐⭐⭐'}
+                                  {card.difficulty === 1 ? '⭐ Easy' : card.difficulty === 2 ? '⭐⭐ Med' : '⭐⭐⭐ Hard'}
                                 </span>
+                                {card.createdBy && (
+                                  <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                                    theme === 'dark'
+                                      ? 'bg-purple-900/50 text-purple-200 border border-purple-700'
+                                      : 'bg-purple-100 text-purple-700 border border-purple-300'
+                                  }`}>
+                                    Created by Team {card.createdBy}
+                                  </span>
+                                )}
                               </div>
                               {card.definition && card.definition !== 'Custom card' && (
-                                <p className={`text-sm ${
+                                <p className={`text-sm mt-2 italic ${
                                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                 }`}>
-                                  {card.definition}
+                                  💡 {card.definition}
                                 </p>
                               )}
                             </div>
                             <button
                               onClick={() => handleDeleteCard(card.id)}
-                              className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow hover:shadow-md"
+                              className="px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow hover:shadow-md transform hover:scale-105"
                             >
                               🗑️
                             </button>
