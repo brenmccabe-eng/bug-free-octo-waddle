@@ -918,8 +918,8 @@ function App() {
             }}
             {...(gameMode === 'quick' ? handlers : {})}
           >
-            <div className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}>
-              Level {currentCard.difficulty}
+            <div className="difficulty-badge" style={{ backgroundColor: currentCard.custom ? '#667eea' : getDifficultyColor(currentCard.difficulty) }}>
+              {currentCard.custom ? 'CUSTOM' : `Level ${currentCard.difficulty}`}
             </div>
 
             <h1 className="card-name">{currentCard.name}</h1>
