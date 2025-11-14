@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import './CardManagement.css';
+import { useTheme } from '../hooks/useTheme';
 
 const CardManagement = ({
   numberOfTeams,
@@ -7,7 +7,7 @@ const CardManagement = ({
   onSaveCards,
   onBack
 }) => {
-  const [activeTab, setActiveTab] = useState('team'); // 'team' or 'shared'
+  const { theme } = useTheme();
   const [selectedTeam, setSelectedTeam] = useState(1);
   const [targetTeam, setTargetTeam] = useState(numberOfTeams >= 2 ? 2 : 1);
   const [cardName, setCardName] = useState('');
@@ -19,8 +19,6 @@ const CardManagement = ({
 
   // Get cards for selected team
   const teamCards = customCards[`team${selectedTeam}`] || [];
-  // Get shared cards
-  const sharedCards = customCards.shared || [];
 
   // Get available target teams (all teams except the creating team)
   const getAvailableTargetTeams = () => {
@@ -57,9 +55,6 @@ const CardManagement = ({
       createdBy: selectedTeam // Track which team created the card
     };
 
-    const key = activeTab === 'team' ? `team${selectedTeam}` : 'shared';
-    const currentCards = activeTab === 'team' ? teamCards : sharedCards;
-
     const updatedCards = {
       ...customCards,
       [`team${targetTeam}`]: [...targetTeamCards, newCard]
@@ -74,13 +69,10 @@ const CardManagement = ({
   };
 
   const handleDeleteCard = (cardId) => {
-    const key = activeTab === 'team' ? `team${selectedTeam}` : 'shared';
-    const currentCards = activeTab === 'team' ? teamCards : sharedCards;
-
-    const updatedCurrentCards = currentCards.filter(card => card.id !== cardId);
+    const updatedTeamCards = teamCards.filter(card => card.id !== cardId);
     const updatedCards = {
       ...customCards,
-      [key]: updatedCurrentCards
+      [`team${selectedTeam}`]: updatedTeamCards
     };
     onSaveCards(updatedCards);
   };
@@ -99,15 +91,15 @@ const CardManagement = ({
           throw new Error('Invalid JSON structure');
         }
 
-        // Validate each team's cards and shared cards
-        Object.keys(imported).forEach(key => {
-          if (!key.startsWith('team') && key !== 'shared') {
-            throw new Error('Invalid key format. Expected "team1", "team2", etc., or "shared"');
+        // Validate each team's cards
+        Object.keys(imported).forEach(teamKey => {
+          if (!teamKey.startsWith('team')) {
+            throw new Error('Invalid team key format');
           }
-          if (!Array.isArray(imported[key])) {
-            throw new Error('Cards must be an array');
+          if (!Array.isArray(imported[teamKey])) {
+            throw new Error('Team cards must be an array');
           }
-          imported[key].forEach(card => {
+          imported[teamKey].forEach(card => {
             if (!card.name) {
               throw new Error('Each card must have a name');
             }
@@ -138,26 +130,35 @@ const CardManagement = ({
     URL.revokeObjectURL(url);
   };
 
-  // Count total cards across all teams and shared
+  // Count total cards across all teams
   const totalCards = Object.values(customCards).reduce(
     (sum, cards) => sum + cards.length,
     0
   );
 
-  const currentCards = activeTab === 'team' ? teamCards : sharedCards;
-
   return (
-    <div className="card-management-container">
-      <div className="card-management-content">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white' : 'bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900'}`}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="card-management-header">
-          <button onClick={onBack} className="back-button-cm">
-            <span className="arrow">←</span>
+        <div className="mb-8">
+          <button
+            onClick={onBack}
+            className={`group flex items-center gap-2 px-5 py-2.5 rounded-xl mb-6 font-medium transition-all duration-200 ${
+              theme === 'dark'
+                ? 'bg-gray-800 hover:bg-gray-700 shadow-lg hover:shadow-xl'
+                : 'bg-white hover:bg-gray-50 shadow-md hover:shadow-lg'
+            }`}
+          >
+            <span className="transition-transform group-hover:-translate-x-1">←</span>
             <span>Back to Game Setup</span>
           </button>
-          <div className="card-management-title">
-            <h1>Custom Card Studio</h1>
-            <p>Create unique cards for your game • Total: {totalCards} cards</p>
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Custom Card Studio
+            </h1>
+            <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              Create unique cards for your game • Total: {totalCards} cards
+            </p>
           </div>
         </div>
 
@@ -202,33 +203,8 @@ const CardManagement = ({
           })}
         </div>
 
-        {/* Team Overview (only show on Team tab) */}
-        {activeTab === 'team' && (
-          <div className="team-overview">
-            {Array.from({ length: numberOfTeams }, (_, i) => i + 1).map(teamNum => {
-              const teamCardCount = customCards[`team${teamNum}`]?.length || 0;
-              return (
-                <div
-                  key={teamNum}
-                  className={`team-card ${selectedTeam === teamNum ? 'selected' : ''}`}
-                  onClick={() => {
-                    setSelectedTeam(teamNum);
-                    setShowManageCards(false);
-                  }}
-                >
-                  <div className="team-card-label">Team {teamNum}</div>
-                  <div className="team-card-count">{teamCardCount}</div>
-                  <div className="team-card-text">
-                    {teamCardCount === 1 ? 'card' : 'cards'}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         {/* Main Content Grid */}
-        <div className="content-grid">
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
           {/* Add Card Form */}
           <div className={`rounded-2xl p-6 ${
             theme === 'dark'
@@ -245,7 +221,7 @@ const CardManagement = ({
               }`}>
                 Creating as Team {selectedTeam}
               </span>
-            </div>
+            </h2>
 
             <div className={`mb-5 p-4 rounded-xl ${
               theme === 'dark'
@@ -330,56 +306,14 @@ const CardManagement = ({
                 </select>
               </div>
 
-            <div className="form-group">
-              <label>Difficulty</label>
-              <select
-                value={cardDifficulty}
-                onChange={(e) => setCardDifficulty(Number(e.target.value))}
-                className="form-select"
-              >
-                <option value={1}>⭐ Easy (1 point)</option>
-                <option value={2}>⭐⭐ Medium (2 points)</option>
-                <option value={3}>⭐⭐⭐ Hard (3 points)</option>
-              </select>
-            </div>
-
-            <button onClick={handleAddCard} className="primary-button">
-              Add to {activeTab === 'team' ? `Team ${selectedTeam}` : 'Shared Pool'}
-            </button>
-          </div>
-
-          {/* Import/Export Section */}
-          <div className="card-section">
-            <div className="section-header">
-              <h2>💾 Import/Export</h2>
-            </div>
-            <div className="button-row">
               <button
                 onClick={handleAddCard}
                 className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
               >
                 ✨ Add Card to Team {targetTeam}
               </button>
-              <button
-                onClick={handleExportJSON}
-                disabled={totalCards === 0}
-                className="secondary-button export"
-              >
-                📤 Export
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleImportJSON}
-                style={{ display: 'none' }}
-              />
             </div>
-            {showImportError && (
-              <div className="error-message">{showImportError}</div>
-            )}
           </div>
-        </div>
 
           {/* Import/Export & Management */}
           <div className="space-y-6">
@@ -440,14 +374,6 @@ const CardManagement = ({
                 </div>
               )}
             </div>
-          ) : (
-            <>
-              <button
-                onClick={() => setShowManageCards(!showManageCards)}
-                className={`toggle-cards-button ${showManageCards ? 'showing' : ''}`}
-              >
-                {showManageCards ? '🔒 Hide Cards' : '👁️ View & Edit Cards'}
-              </button>
 
             {/* Manage Cards Section */}
             <div className={`rounded-2xl p-6 ${
@@ -546,26 +472,17 @@ const CardManagement = ({
                               onClick={() => handleDeleteCard(card.id)}
                               className="px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow hover:shadow-md transform hover:scale-105"
                             >
-                              {card.difficulty === 1 ? '⭐' : card.difficulty === 2 ? '⭐⭐' : '⭐⭐⭐'}
-                            </span>
+                              🗑️
+                            </button>
                           </div>
-                          {card.definition && card.definition !== 'Custom card' && (
-                            <p className="card-item-definition">{card.definition}</p>
-                          )}
                         </div>
-                        <button
-                          onClick={() => handleDeleteCard(card.id)}
-                          className="delete-button"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
