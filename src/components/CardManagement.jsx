@@ -13,6 +13,7 @@ const CardManagement = ({
   const [cardDefinition, setCardDefinition] = useState('');
   const [cardDifficulty, setCardDifficulty] = useState(1);
   const [showImportError, setShowImportError] = useState('');
+  const [showManageCards, setShowManageCards] = useState(false);
   const fileInputRef = useRef(null);
 
   // Get cards for selected team
@@ -115,205 +116,282 @@ const CardManagement = ({
   );
 
   return (
-    <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-      <div className="max-w-4xl mx-auto">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white' : 'bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900'}`}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-8">
           <button
             onClick={onBack}
-            className={`px-4 py-2 rounded-lg mb-4 ${
+            className={`group flex items-center gap-2 px-5 py-2.5 rounded-xl mb-6 font-medium transition-all duration-200 ${
               theme === 'dark'
-                ? 'bg-gray-700 hover:bg-gray-600'
-                : 'bg-gray-300 hover:bg-gray-400'
+                ? 'bg-gray-800 hover:bg-gray-700 shadow-lg hover:shadow-xl'
+                : 'bg-white hover:bg-gray-50 shadow-md hover:shadow-lg'
             }`}
           >
-            ← Back to Game Setup
+            <span className="transition-transform group-hover:-translate-x-1">←</span>
+            <span>Back to Game Setup</span>
           </button>
-          <h1 className="text-3xl font-bold mb-2">Manage Custom Cards</h1>
-          <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            Add custom cards for each team. Total cards: {totalCards}
-          </p>
-        </div>
-
-        {/* Import/Export Section */}
-        <div className={`p-4 rounded-lg mb-6 ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <h2 className="text-xl font-semibold mb-3">Import/Export</h2>
-          <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-            >
-              Import from JSON
-            </button>
-            <button
-              onClick={handleExportJSON}
-              disabled={totalCards === 0}
-              className={`px-4 py-2 rounded-lg text-white ${
-                totalCards === 0
-                  ? 'bg-gray-500 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              Export to JSON
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImportJSON}
-              className="hidden"
-            />
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Custom Card Studio
+            </h1>
+            <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              Create unique cards for your game • Total: {totalCards} cards
+            </p>
           </div>
-          {showImportError && (
-            <p className="text-red-500 mt-2 text-sm">{showImportError}</p>
-          )}
         </div>
 
-        {/* Team Selector */}
-        <div className={`p-4 rounded-lg mb-6 ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <h2 className="text-xl font-semibold mb-3">Select Team</h2>
-          <div className="flex gap-2 flex-wrap">
-            {Array.from({ length: numberOfTeams }, (_, i) => i + 1).map(teamNum => (
+        {/* Team Overview Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {Array.from({ length: numberOfTeams }, (_, i) => i + 1).map(teamNum => {
+            const teamCardCount = customCards[`team${teamNum}`]?.length || 0;
+            return (
               <button
                 key={teamNum}
-                onClick={() => setSelectedTeam(teamNum)}
-                className={`px-4 py-2 rounded-lg font-semibold ${
+                onClick={() => {
+                  setSelectedTeam(teamNum);
+                  setShowManageCards(false);
+                }}
+                className={`p-4 rounded-xl transition-all duration-200 ${
                   selectedTeam === teamNum
-                    ? 'bg-blue-600 text-white'
+                    ? theme === 'dark'
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl scale-105'
+                      : 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-105 text-white'
                     : theme === 'dark'
-                    ? 'bg-gray-700 hover:bg-gray-600'
-                    : 'bg-gray-200 hover:bg-gray-300'
+                    ? 'bg-gray-800 hover:bg-gray-750 shadow-lg hover:shadow-xl'
+                    : 'bg-white hover:bg-gray-50 shadow-md hover:shadow-lg'
                 }`}
               >
-                Team {teamNum} ({customCards[`team${teamNum}`]?.length || 0})
+                <div className="text-sm font-medium opacity-90 mb-1">Team {teamNum}</div>
+                <div className="text-3xl font-bold">{teamCardCount}</div>
+                <div className="text-xs opacity-75 mt-1">
+                  {teamCardCount === 1 ? 'card' : 'cards'}
+                </div>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Add Card Form */}
-        <div className={`p-4 rounded-lg mb-6 ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <h2 className="text-xl font-semibold mb-3">Add Card for Team {selectedTeam}</h2>
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          {/* Add Card Form */}
+          <div className={`rounded-2xl p-6 ${
+            theme === 'dark'
+              ? 'bg-gray-800 shadow-2xl'
+              : 'bg-white shadow-xl'
+          }`}>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="text-2xl">➕</span>
+              Add Card
+              <span className={`ml-auto text-sm font-semibold px-3 py-1 rounded-full ${
+                theme === 'dark'
+                  ? 'bg-blue-900 text-blue-200'
+                  : 'bg-blue-100 text-blue-700'
+              }`}>
+                Team {selectedTeam}
+              </span>
+            </h2>
 
-          <div className="space-y-3">
-            <div>
-              <label className="block mb-1 font-medium">Card Name *</label>
-              <input
-                type="text"
-                value={cardName}
-                onChange={(e) => setCardName(e.target.value)}
-                placeholder="e.g., Dancing in the rain"
-                className={`w-full px-3 py-2 rounded-lg ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600'
-                    : 'bg-white border-gray-300'
-                } border`}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium">Definition/Hint (optional)</label>
-              <textarea
-                value={cardDefinition}
-                onChange={(e) => setCardDefinition(e.target.value)}
-                placeholder="e.g., Joyful outdoor activity. Pretend to dance with arms up!"
-                rows={3}
-                className={`w-full px-3 py-2 rounded-lg ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600'
-                    : 'bg-white border-gray-300'
-                } border`}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium">Difficulty</label>
-              <select
-                value={cardDifficulty}
-                onChange={(e) => setCardDifficulty(Number(e.target.value))}
-                className={`w-full px-3 py-2 rounded-lg ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600'
-                    : 'bg-white border-gray-300'
-                } border`}
-              >
-                <option value={1}>Easy (1 point)</option>
-                <option value={2}>Medium (2 points)</option>
-                <option value={3}>Hard (3 points)</option>
-              </select>
-            </div>
-
-            <button
-              onClick={handleAddCard}
-              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
-            >
-              Add Card to Team {selectedTeam}
-            </button>
-          </div>
-        </div>
-
-        {/* Team's Cards List */}
-        <div className={`p-4 rounded-lg ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <h2 className="text-xl font-semibold mb-3">
-            Team {selectedTeam}'s Cards ({teamCards.length})
-          </h2>
-
-          {teamCards.length === 0 ? (
-            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              No custom cards yet. Add some above!
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {teamCards.map((card, index) => (
-                <div
-                  key={card.id}
-                  className={`p-3 rounded-lg border ${
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-2 font-semibold text-sm">Card Name *</label>
+                <input
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="e.g., Dancing in the rain"
+                  className={`w-full px-4 py-3 rounded-xl transition-all ${
                     theme === 'dark'
-                      ? 'bg-gray-700 border-gray-600'
-                      : 'bg-gray-50 border-gray-200'
+                      ? 'bg-gray-700 border-2 border-gray-600 focus:border-blue-500 focus:bg-gray-650'
+                      : 'bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white'
+                  } outline-none`}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 font-semibold text-sm">Definition/Hint (optional)</label>
+                <textarea
+                  value={cardDefinition}
+                  onChange={(e) => setCardDefinition(e.target.value)}
+                  placeholder="Add a helpful hint or description..."
+                  rows={3}
+                  className={`w-full px-4 py-3 rounded-xl transition-all resize-none ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-2 border-gray-600 focus:border-blue-500 focus:bg-gray-650'
+                      : 'bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white'
+                  } outline-none`}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 font-semibold text-sm">Difficulty</label>
+                <select
+                  value={cardDifficulty}
+                  onChange={(e) => setCardDifficulty(Number(e.target.value))}
+                  className={`w-full px-4 py-3 rounded-xl transition-all ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-2 border-gray-600 focus:border-blue-500'
+                      : 'bg-gray-50 border-2 border-gray-200 focus:border-blue-500'
+                  } outline-none cursor-pointer`}
+                >
+                  <option value={1}>⭐ Easy (1 point)</option>
+                  <option value={2}>⭐⭐ Medium (2 points)</option>
+                  <option value={3}>⭐⭐⭐ Hard (3 points)</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleAddCard}
+                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                Add Card to Team {selectedTeam}
+              </button>
+            </div>
+          </div>
+
+          {/* Import/Export & Management */}
+          <div className="space-y-6">
+            {/* Import/Export Section */}
+            <div className={`rounded-2xl p-6 ${
+              theme === 'dark'
+                ? 'bg-gray-800 shadow-2xl'
+                : 'bg-white shadow-xl'
+            }`}>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <span className="text-2xl">💾</span>
+                Import/Export
+              </h2>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-purple-500 hover:bg-purple-600 text-white shadow-md hover:shadow-lg'
                   }`}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold">{index + 1}. {card.name}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          card.difficulty === 1
-                            ? 'bg-green-600 text-white'
-                            : card.difficulty === 2
-                            ? 'bg-yellow-600 text-white'
-                            : 'bg-red-600 text-white'
-                        }`}>
-                          {card.difficulty === 1 ? 'Easy' : card.difficulty === 2 ? 'Medium' : 'Hard'}
-                        </span>
-                      </div>
-                      {card.definition && (
-                        <p className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
-                          {card.definition}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDeleteCard(card.id)}
-                      className="ml-3 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  📥 Import
+                </button>
+                <button
+                  onClick={handleExportJSON}
+                  disabled={totalCards === 0}
+                  className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                    totalCards === 0
+                      ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                      : theme === 'dark'
+                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
+                  }`}
+                >
+                  📤 Export
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportJSON}
+                  className="hidden"
+                />
+              </div>
+              {showImportError && (
+                <div className="mt-3 p-3 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
+                  <p className="text-red-500 text-sm">{showImportError}</p>
                 </div>
-              ))}
+              )}
             </div>
-          )}
+
+            {/* Manage Cards Section */}
+            <div className={`rounded-2xl p-6 ${
+              theme === 'dark'
+                ? 'bg-gray-800 shadow-2xl'
+                : 'bg-white shadow-xl'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <span className="text-2xl">🎴</span>
+                  Manage Cards
+                </h2>
+                <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 text-gray-300'
+                    : 'bg-gray-200 text-gray-700'
+                }`}>
+                  {teamCards.length}
+                </span>
+              </div>
+
+              {teamCards.length === 0 ? (
+                <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  No cards added yet for Team {selectedTeam}
+                </p>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowManageCards(!showManageCards)}
+                    className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                      showManageCards
+                        ? theme === 'dark'
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-red-500 hover:bg-red-600 text-white'
+                        : theme === 'dark'
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                    } shadow-md hover:shadow-lg`}
+                  >
+                    {showManageCards ? '🔒 Hide Cards' : '👁️ View & Edit Cards'}
+                  </button>
+
+                  {showManageCards && (
+                    <div className="mt-4 space-y-2 max-h-96 overflow-y-auto pr-2">
+                      {teamCards.map((card, index) => (
+                        <div
+                          key={card.id}
+                          className={`p-4 rounded-xl transition-all ${
+                            theme === 'dark'
+                              ? 'bg-gray-700 hover:bg-gray-650'
+                              : 'bg-gray-50 hover:bg-gray-100'
+                          } border-2 ${
+                            theme === 'dark' ? 'border-gray-600' : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-bold text-lg">{index + 1}.</span>
+                                <span className="font-semibold">{card.name}</span>
+                                <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                                  card.difficulty === 1
+                                    ? 'bg-green-500 text-white'
+                                    : card.difficulty === 2
+                                    ? 'bg-yellow-500 text-white'
+                                    : 'bg-red-500 text-white'
+                                }`}>
+                                  {card.difficulty === 1 ? '⭐' : card.difficulty === 2 ? '⭐⭐' : '⭐⭐⭐'}
+                                </span>
+                              </div>
+                              {card.definition && card.definition !== 'Custom card' && (
+                                <p className={`text-sm ${
+                                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                  {card.definition}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleDeleteCard(card.id)}
+                              className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow hover:shadow-md"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
