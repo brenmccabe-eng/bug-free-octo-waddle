@@ -928,8 +928,8 @@ function App() {
       </div>
 
       {gameMode === 'monikers' && roundRules && (
-        <div className="round-indicator" style={{ backgroundColor: roundRules.color }}>
-          <div className="team-banner">
+        <div className="round-indicator">
+          <div className="team-banner" style={{ backgroundColor: roundRules.color }}>
             <div className="team-banner-label">NOW PLAYING</div>
             <div className="team-banner-name">TEAM {currentTeam}</div>
           </div>
@@ -940,6 +940,14 @@ function App() {
           <div className="round-description-inline">{roundRules.description}</div>
           <div className="round-score-tracker">
             Score: {calculatePoints(scoredCards)}/{calculateMaxPoints(deckForRounds)} pts ({scoredCards.length}/{deckForRounds.length} cards)
+            {skippedCards.length > 0 && (
+              <button
+                className="review-skipped-btn"
+                onClick={() => setShowSkippedModal(true)}
+              >
+                📋 Review Skipped ({skippedCards.length})
+              </button>
+            )}
           </div>
         </div>
       )}
