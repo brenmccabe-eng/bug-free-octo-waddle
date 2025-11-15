@@ -1,0 +1,602 @@
+[
+  {
+    "id": 1001,
+    "name": "Taking a selfie",
+    "difficulty": 1,
+    "definition": "Popular photo trend. Hold up an imaginary phone and pose for a picture of yourself!"
+  },
+  {
+    "id": 1002,
+    "name": "Streaming on Netflix",
+    "difficulty": 1,
+    "definition": "Watching shows online. Sit on the couch with a remote and binge-watch!"
+  },
+  {
+    "id": 1003,
+    "name": "Scrolling through social media",
+    "difficulty": 1,
+    "definition": "Looking at your phone feed. Swipe up with your thumb endlessly!"
+  },
+  {
+    "id": 1004,
+    "name": "Drinking coffee",
+    "difficulty": 1,
+    "definition": "Morning caffeine ritual. Sip from a mug and feel energized!"
+  },
+  {
+    "id": 1005,
+    "name": "Taking out the trash",
+    "difficulty": 1,
+    "definition": "Weekly chore. Carry a heavy bag and toss it in the bin!"
+  },
+  {
+    "id": 1006,
+    "name": "Working from home",
+    "difficulty": 1,
+    "definition": "Remote office life. Type on laptop while sitting in pajamas!"
+  },
+  {
+    "id": 1007,
+    "name": "Going to Starbucks",
+    "difficulty": 1,
+    "definition": "Coffee shop visit. Order a fancy drink and spell your name!"
+  },
+  {
+    "id": 1008,
+    "name": "Online shopping",
+    "difficulty": 1,
+    "definition": "Buying things on the internet. Click, add to cart, and checkout!"
+  },
+  {
+    "id": 1009,
+    "name": "Walking a dog",
+    "difficulty": 1,
+    "definition": "Pet care routine. Hold a leash and follow your furry friend!"
+  },
+  {
+    "id": 1010,
+    "name": "Microwaving food",
+    "difficulty": 1,
+    "definition": "Quick meal prep. Put food in, press buttons, and wait for beep!"
+  },
+  {
+    "id": 1011,
+    "name": "Charging your phone",
+    "difficulty": 1,
+    "definition": "Daily tech necessity. Plug in the cable when battery is low!"
+  },
+  {
+    "id": 1012,
+    "name": "Doing laundry",
+    "difficulty": 1,
+    "definition": "Washing clothes. Load the machine, add detergent, and press start!"
+  },
+  {
+    "id": 1013,
+    "name": "Playing Wordle",
+    "difficulty": 1,
+    "definition": "Daily word puzzle game. Think hard and type in five-letter words!"
+  },
+  {
+    "id": 1014,
+    "name": "Checking email",
+    "difficulty": 1,
+    "definition": "Digital mail routine. Open inbox and delete spam!"
+  },
+  {
+    "id": 1015,
+    "name": "Pumping gas",
+    "difficulty": 1,
+    "definition": "Fueling up your car. Insert nozzle and squeeze the handle!"
+  },
+  {
+    "id": 1016,
+    "name": "Going through TSA security",
+    "difficulty": 2,
+    "definition": "Airport checkpoint. Take off shoes, empty pockets, walk through scanner!"
+  },
+  {
+    "id": 1017,
+    "name": "Parallel parking",
+    "difficulty": 2,
+    "definition": "Tricky driving maneuver. Turn wheel, back up slowly between two cars!"
+  },
+  {
+    "id": 1018,
+    "name": "Assembling IKEA furniture",
+    "difficulty": 2,
+    "definition": "Swedish furniture challenge. Read confusing instructions and use Allen wrench!"
+  },
+  {
+    "id": 1019,
+    "name": "Password reset",
+    "difficulty": 2,
+    "definition": "Forgot login process. Click 'forgot password' and check your email!"
+  },
+  {
+    "id": 1020,
+    "name": "Zoom meeting",
+    "difficulty": 2,
+    "definition": "Virtual video call. Turn on camera, realize you're on mute!"
+  },
+  {
+    "id": 1021,
+    "name": "Taylor Swift",
+    "difficulty": 1,
+    "definition": "Pop superstar known for writing songs about her exes. Shake it off!"
+  },
+  {
+    "id": 1022,
+    "name": "Elon Musk",
+    "difficulty": 1,
+    "definition": "Tech billionaire who owns Tesla and X (Twitter). Talk about Mars!"
+  },
+  {
+    "id": 1023,
+    "name": "Beyoncé",
+    "difficulty": 1,
+    "definition": "Queen Bey herself. Strike a fierce pose and own the stage!"
+  },
+  {
+    "id": 1024,
+    "name": "LeBron James",
+    "difficulty": 1,
+    "definition": "NBA basketball legend. Dribble and dunk like a king!"
+  },
+  {
+    "id": 1025,
+    "name": "Oprah Winfrey",
+    "difficulty": 1,
+    "definition": "Talk show icon. Point and say 'You get a car!'"
+  },
+  {
+    "id": 1026,
+    "name": "The Statue of Liberty",
+    "difficulty": 1,
+    "definition": "Famous New York landmark. Hold up a torch and wear a crown!"
+  },
+  {
+    "id": 1027,
+    "name": "The Eiffel Tower",
+    "difficulty": 1,
+    "definition": "Iconic Paris monument. Stand tall and point to the sky!"
+  },
+  {
+    "id": 1028,
+    "name": "McDonald's",
+    "difficulty": 1,
+    "definition": "Golden arches fast food. Say 'I'm lovin' it!'"
+  },
+  {
+    "id": 1029,
+    "name": "Amazon Prime delivery",
+    "difficulty": 1,
+    "definition": "Fast package shipping. Wait by door for cardboard box!"
+  },
+  {
+    "id": 1030,
+    "name": "Google it",
+    "difficulty": 1,
+    "definition": "Looking something up online. Type question into search bar!"
+  },
+  {
+    "id": 1031,
+    "name": "Black Friday shopping",
+    "difficulty": 2,
+    "definition": "Day after Thanksgiving chaos. Fight crowds for deals!"
+  },
+  {
+    "id": 1032,
+    "name": "March Madness",
+    "difficulty": 2,
+    "definition": "College basketball tournament. Fill out a bracket!"
+  },
+  {
+    "id": 1033,
+    "name": "Super Bowl",
+    "difficulty": 1,
+    "definition": "Biggest football game. Watch commercials and halftime show!"
+  },
+  {
+    "id": 1034,
+    "name": "Halloween trick-or-treating",
+    "difficulty": 1,
+    "definition": "Going door to door in costume. Say 'trick or treat!'"
+  },
+  {
+    "id": 1035,
+    "name": "Fourth of July fireworks",
+    "difficulty": 1,
+    "definition": "Independence Day celebration. Look up at sky and go 'oooh, ahhh!'"
+  },
+  {
+    "id": 1036,
+    "name": "Times Square New Year's Eve",
+    "difficulty": 2,
+    "definition": "NYC ball drop celebration. Count down from 10 in a huge crowd!"
+  },
+  {
+    "id": 1037,
+    "name": "Thanksgiving turkey",
+    "difficulty": 1,
+    "definition": "Holiday bird dinner. Carve and stuff yourself full!"
+  },
+  {
+    "id": 1038,
+    "name": "SpongeBob SquarePants",
+    "difficulty": 1,
+    "definition": "Yellow cartoon character. Live in a pineapple under the sea!"
+  },
+  {
+    "id": 1039,
+    "name": "Harry Potter",
+    "difficulty": 1,
+    "definition": "Boy wizard with scar. Wave a wand and say spells!"
+  },
+  {
+    "id": 1040,
+    "name": "Star Wars lightsaber",
+    "difficulty": 1,
+    "definition": "Jedi weapon. Make humming sounds and swing it around!"
+  },
+  {
+    "id": 1041,
+    "name": "The Avengers",
+    "difficulty": 1,
+    "definition": "Marvel superhero team. Assemble with Iron Man, Captain America, Thor!"
+  },
+  {
+    "id": 1042,
+    "name": "Stranger Things",
+    "difficulty": 1,
+    "definition": "Netflix show with the Upside Down. Look for Eleven!"
+  },
+  {
+    "id": 1043,
+    "name": "Game of Thrones",
+    "difficulty": 2,
+    "definition": "Epic HBO fantasy series. Winter is coming!"
+  },
+  {
+    "id": 1044,
+    "name": "The Office",
+    "difficulty": 1,
+    "definition": "Workplace mockumentary sitcom. Do Michael Scott impression!"
+  },
+  {
+    "id": 1045,
+    "name": "Friends",
+    "difficulty": 1,
+    "definition": "NYC coffee shop sitcom. Sit on the Central Perk couch!"
+  },
+  {
+    "id": 1046,
+    "name": "Breaking Bad",
+    "difficulty": 2,
+    "definition": "Chemistry teacher turns meth cook. Say 'I am the one who knocks!'"
+  },
+  {
+    "id": 1047,
+    "name": "The Simpsons",
+    "difficulty": 1,
+    "definition": "Long-running animated family. Say 'D'oh!'"
+  },
+  {
+    "id": 1048,
+    "name": "Fortnite Battle Royale",
+    "difficulty": 1,
+    "definition": "Popular shooting game. Do victory dance emotes!"
+  },
+  {
+    "id": 1049,
+    "name": "Among Us",
+    "difficulty": 1,
+    "definition": "Multiplayer deduction game. Vote out the impostor!"
+  },
+  {
+    "id": 1050,
+    "name": "Call of Duty",
+    "difficulty": 1,
+    "definition": "Military shooter video game. Aim and fire!"
+  },
+  {
+    "id": 1051,
+    "name": "Pokémon GO",
+    "difficulty": 1,
+    "definition": "AR mobile game. Walk around catching creatures!"
+  },
+  {
+    "id": 1052,
+    "name": "Grand Theft Auto",
+    "difficulty": 2,
+    "definition": "Open world crime game series. Steal cars and cause chaos!"
+  },
+  {
+    "id": 1053,
+    "name": "The Legend of Zelda",
+    "difficulty": 2,
+    "definition": "Adventure game with Link. Find triforce pieces!"
+  },
+  {
+    "id": 1054,
+    "name": "Super Mario Bros",
+    "difficulty": 1,
+    "definition": "Classic platformer game. Jump on goombas!"
+  },
+  {
+    "id": 1055,
+    "name": "iPhone",
+    "difficulty": 1,
+    "definition": "Apple's smartphone. Swipe and tap on touchscreen!"
+  },
+  {
+    "id": 1056,
+    "name": "Tesla electric car",
+    "difficulty": 1,
+    "definition": "Luxury EV vehicle. Drive silently with autopilot!"
+  },
+  {
+    "id": 1057,
+    "name": "Bitcoin",
+    "difficulty": 2,
+    "definition": "Digital cryptocurrency. Mine for virtual coins!"
+  },
+  {
+    "id": 1058,
+    "name": "ChatGPT",
+    "difficulty": 2,
+    "definition": "AI chatbot. Ask questions and get detailed answers!"
+  },
+  {
+    "id": 1059,
+    "name": "TikTok",
+    "difficulty": 1,
+    "definition": "Short video app. Scroll through endless content!"
+  },
+  {
+    "id": 1060,
+    "name": "Instagram",
+    "difficulty": 1,
+    "definition": "Photo sharing social media. Post pics with filters!"
+  },
+  {
+    "id": 1061,
+    "name": "YouTube",
+    "difficulty": 1,
+    "definition": "Video platform. Watch and subscribe to channels!"
+  },
+  {
+    "id": 1062,
+    "name": "Uber ride",
+    "difficulty": 1,
+    "definition": "Rideshare app service. Request car on phone!"
+  },
+  {
+    "id": 1063,
+    "name": "Spotify",
+    "difficulty": 1,
+    "definition": "Music streaming service. Create playlists!"
+  },
+  {
+    "id": 1064,
+    "name": "Airbnb",
+    "difficulty": 1,
+    "definition": "Vacation rental platform. Book someone's house!"
+  },
+  {
+    "id": 1065,
+    "name": "Venmo payment",
+    "difficulty": 1,
+    "definition": "Peer-to-peer money app. Split the bill digitally!"
+  },
+  {
+    "id": 1066,
+    "name": "DoorDash delivery",
+    "difficulty": 1,
+    "definition": "Food delivery service. Order meals to your door!"
+  },
+  {
+    "id": 1067,
+    "name": "Peloton workout",
+    "difficulty": 2,
+    "definition": "Stationary bike fitness. Pedal hard in a class!"
+  },
+  {
+    "id": 1068,
+    "name": "Airpods",
+    "difficulty": 1,
+    "definition": "Apple wireless earbuds. Put in ears and listen!"
+  },
+  {
+    "id": 1069,
+    "name": "Ring doorbell",
+    "difficulty": 2,
+    "definition": "Smart home camera. See who's at your door!"
+  },
+  {
+    "id": 1070,
+    "name": "Alexa voice assistant",
+    "difficulty": 1,
+    "definition": "Amazon smart speaker. Say 'Alexa' and ask a question!"
+  },
+  {
+    "id": 1071,
+    "name": "Lady Gaga",
+    "difficulty": 1,
+    "definition": "Pop star known for wild outfits. Born this way!"
+  },
+  {
+    "id": 1072,
+    "name": "Dwayne 'The Rock' Johnson",
+    "difficulty": 1,
+    "definition": "WWE wrestler turned actor. Flex and smell what he's cooking!"
+  },
+  {
+    "id": 1073,
+    "name": "Kim Kardashian",
+    "difficulty": 1,
+    "definition": "Reality TV star and influencer. Take selfies!"
+  },
+  {
+    "id": 1074,
+    "name": "Donald Trump",
+    "difficulty": 1,
+    "definition": "Former US President and businessman. Make exaggerated hand gestures!"
+  },
+  {
+    "id": 1075,
+    "name": "Barack Obama",
+    "difficulty": 1,
+    "definition": "44th US President. Give inspiring speech!"
+  },
+  {
+    "id": 1076,
+    "name": "Queen Elizabeth II",
+    "difficulty": 1,
+    "definition": "British monarch. Wave regally with white gloves!"
+  },
+  {
+    "id": 1077,
+    "name": "Serena Williams",
+    "difficulty": 1,
+    "definition": "Tennis champion. Serve a powerful ace!"
+  },
+  {
+    "id": 1078,
+    "name": "Michael Jordan",
+    "difficulty": 1,
+    "definition": "NBA legend. Dunk and stick out tongue!"
+  },
+  {
+    "id": 1079,
+    "name": "Tom Brady",
+    "difficulty": 1,
+    "definition": "NFL quarterback GOAT. Throw perfect spiral!"
+  },
+  {
+    "id": 1080,
+    "name": "Simone Biles",
+    "difficulty": 2,
+    "definition": "Olympic gymnast. Do incredible flips!"
+  },
+  {
+    "id": 1081,
+    "name": "Cristiano Ronaldo",
+    "difficulty": 1,
+    "definition": "Soccer superstar. Do signature celebration!"
+  },
+  {
+    "id": 1082,
+    "name": "BTS",
+    "difficulty": 1,
+    "definition": "K-pop boy band sensation. Dance in perfect sync!"
+  },
+  {
+    "id": 1083,
+    "name": "Billie Eilish",
+    "difficulty": 2,
+    "definition": "Young pop singer. Whisper sing in baggy clothes!"
+  },
+  {
+    "id": 1084,
+    "name": "Marvel's Black Panther",
+    "difficulty": 1,
+    "definition": "Wakanda superhero. Cross arms in salute!"
+  },
+  {
+    "id": 1085,
+    "name": "Wednesday Addams dance",
+    "difficulty": 2,
+    "definition": "Viral Netflix dance scene. Do jerky gothic moves!"
+  },
+  {
+    "id": 1086,
+    "name": "Baby Yoda (Grogu)",
+    "difficulty": 1,
+    "definition": "Cute Star Wars character. Be small and use the Force!"
+  },
+  {
+    "id": 1087,
+    "name": "Squid Game",
+    "difficulty": 1,
+    "definition": "Korean survival show. Play Red Light Green Light!"
+  },
+  {
+    "id": 1088,
+    "name": "Barbie movie",
+    "difficulty": 1,
+    "definition": "2023 pink film phenomenon. Live in Barbie Land!"
+  },
+  {
+    "id": 1089,
+    "name": "Avatar (blue aliens)",
+    "difficulty": 1,
+    "definition": "James Cameron sci-fi film. Be tall and blue on Pandora!"
+  },
+  {
+    "id": 1090,
+    "name": "Titanic",
+    "difficulty": 1,
+    "definition": "Classic romance disaster film. Stand at bow like you're flying!"
+  },
+  {
+    "id": 1091,
+    "name": "Jurassic Park",
+    "difficulty": 1,
+    "definition": "Dinosaur theme park movie. Run from T-Rex!"
+  },
+  {
+    "id": 1092,
+    "name": "The Matrix",
+    "difficulty": 2,
+    "definition": "Mind-bending sci-fi movie. Dodge bullets in slow motion!"
+  },
+  {
+    "id": 1093,
+    "name": "Lord of the Rings",
+    "difficulty": 1,
+    "definition": "Epic fantasy trilogy. Carry the ring to Mordor!"
+  },
+  {
+    "id": 1094,
+    "name": "Frozen 'Let It Go'",
+    "difficulty": 1,
+    "definition": "Disney song everyone knows. Belt it out dramatically!"
+  },
+  {
+    "id": 1095,
+    "name": "Coachella music festival",
+    "difficulty": 2,
+    "definition": "Desert music and arts festival. Wear flower crown!"
+  },
+  {
+    "id": 1096,
+    "name": "Burning Man",
+    "difficulty": 2,
+    "definition": "Nevada desert art festival. Dress wild and burn effigy!"
+  },
+  {
+    "id": 1097,
+    "name": "Comic-Con",
+    "difficulty": 2,
+    "definition": "Pop culture convention. Dress up in cosplay!"
+  },
+  {
+    "id": 1098,
+    "name": "Disneyland",
+    "difficulty": 1,
+    "definition": "Happiest place on Earth. Ride rides and meet characters!"
+  },
+  {
+    "id": 1099,
+    "name": "Las Vegas casino",
+    "difficulty": 1,
+    "definition": "Nevada gambling city. Pull slot machine lever!"
+  },
+  {
+    "id": 1100,
+    "name": "Climate change protest",
+    "difficulty": 2,
+    "definition": "Environmental activism. Hold sign and march for planet!"
+  }
+]
