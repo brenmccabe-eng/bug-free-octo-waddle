@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { cards } from './data/cards';
+import standardCards from './data/content.json';
 import { useSwipe } from './hooks/useSwipe';
 import { useTheme } from './hooks/useTheme';
 import ScoreBoard from './components/ScoreBoard';
@@ -15,6 +16,7 @@ function App() {
   const [usedCards, setUsedCards] = useState([]);
   const [showDefinition, setShowDefinition] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [contentMode, setContentMode] = useState('family'); // 'family' or 'standard'
   const [gameStarted, setGameStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -166,7 +168,8 @@ function App() {
 
   // Get all available cards (default + custom for all teams)
   const getAllAvailableCards = () => {
-    let allCards = [...cards];
+    // Use either family or standard cards based on content mode
+    let allCards = contentMode === 'standard' ? [...standardCards] : [...cards];
 
     // Add all custom cards from all teams
     Object.values(customCards).forEach(teamCards => {
@@ -745,6 +748,29 @@ function App() {
         <div className="welcome-screen">
           <h1>Mini-Miney-Monikers</h1>
           <p className="tagline">Addy-J and Cammy-K Jam</p>
+
+          <div className="content-mode-selector">
+            <h3>Select Card Set:</h3>
+            <div className="mode-toggle">
+              <button
+                className={contentMode === 'family' ? 'mode-toggle-btn active' : 'mode-toggle-btn'}
+                onClick={() => setContentMode('family')}
+              >
+                👨‍👩‍👧‍👦 Family Mode
+              </button>
+              <button
+                className={contentMode === 'standard' ? 'mode-toggle-btn active' : 'mode-toggle-btn'}
+                onClick={() => setContentMode('standard')}
+              >
+                🌟 Standard Mode
+              </button>
+            </div>
+            <p className="mode-description">
+              {contentMode === 'family'
+                ? 'Family-friendly cards perfect for all ages!'
+                : 'Current cultural references and noteworthy topics!'}
+            </p>
+          </div>
 
           <div className="difficulty-selector">
             <h3>Choose Difficulty:</h3>
