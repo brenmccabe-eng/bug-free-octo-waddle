@@ -31,6 +31,8 @@ function App() {
   const [skippedCards, setSkippedCards] = useState([]);
   const [showTransition, setShowTransition] = useState(false);
   const [showFinalScore, setShowFinalScore] = useState(false);
+  const [ramboMode, setRamboMode] = useState(false);
+  const [originalDeck, setOriginalDeck] = useState([]); // Track the full deck from round 1
 
   // Team state
   const [numberOfTeams, setNumberOfTeams] = useState(2);
@@ -218,11 +220,13 @@ function App() {
     if (mode === 'monikers') {
       // Initialize deck for Monikers mode
       const deck = initializeDeck();
+      setOriginalDeck([...deck]); // Save a copy of the original deck for rambo mode
       setCurrentRound(1);
       setCurrentTeam(1);
       setScoredCards([]);
       setSkippedCards([]);
       setRoundScores({});
+      setRamboMode(false);
 
       // Initialize team scores
       const initialTeamScores = {};
@@ -262,6 +266,8 @@ function App() {
     setShowTransition(false);
     setShowFinalScore(false);
     setShowTeamTransition(false);
+    setRamboMode(false);
+    setOriginalDeck([]);
   };
 
   const startTimer = () => {
@@ -378,8 +384,15 @@ function App() {
 
     // Check if all teams have played this round
     if (currentTeam < numberOfTeams) {
-      // More teams need to play this round
-      setShowTeamTransition(true);
+      // Check if there are cards available for the next team
+      const availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
+      if (availableCards.length > 0) {
+        // More teams need to play and there are cards available
+        setShowTeamTransition(true);
+      } else {
+        // No cards left for remaining teams, end the round
+        completeRound(updatedTeamScores);
+      }
     } else {
       // All teams finished this round, complete the round
       completeRound(updatedTeamScores);
@@ -455,8 +468,18 @@ function App() {
     setCurrentRound(currentRound + 1);
     setCurrentTeam(1);
 
-    // Use only the scored cards from previous round as the new deck
-    const newDeck = shuffleArray(scoredCards);
+    // Build the deck for the next round
+    let newDeck = [...scoredCards]; // Start with scored cards from previous round
+
+    // If rambo mode is enabled, add unscored cards from the original deck
+    if (ramboMode) {
+      const scoredCardIds = scoredCards.map(card => card.id);
+      const unscoredCards = originalDeck.filter(card => !scoredCardIds.includes(card.id));
+      newDeck = [...newDeck, ...unscoredCards];
+    }
+
+    // Shuffle the deck
+    newDeck = shuffleArray(newDeck);
     setDeckForRounds(newDeck);
 
     // Reset round state (including roundUsedCards for the new round)
@@ -583,6 +606,8 @@ function App() {
   if (showTransition) {
     const roundRules = getRoundRules(currentRound + 1);
     const prevRoundScore = roundScores[`round${currentRound}`];
+    const scoredCardIds = prevRoundScore.allScoredCards?.map(card => card.id) || [];
+    const unscoredCards = originalDeck.filter(card => !scoredCardIds.includes(card.id));
 
     return (
       <div className="App">
@@ -622,13 +647,50 @@ function App() {
             )}
           </div>
 
+          {currentRound < 3 && unscoredCards.length > 0 && (
+            <div className="rambo-mode-section" style={{
+              margin: '20px 0',
+              padding: '20px',
+              backgroundColor: ramboMode ? 'rgba(239, 68, 68, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+              borderRadius: '12px',
+              border: ramboMode ? '2px solid #ef4444' : '2px solid #64748b'
+            }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'pointer',
+                fontSize: '16px'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={ramboMode}
+                  onChange={(e) => setRamboMode(e.target.checked)}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    cursor: 'pointer'
+                  }}
+                />
+                <div>
+                  <strong style={{ color: ramboMode ? '#ef4444' : '#e0e0e0' }}>
+                    🎯 Rambo Mode
+                  </strong>
+                  <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#a0a0a0' }}>
+                    Include all {unscoredCards.length} unscored cards from round 1 for long-shot scoring opportunities!
+                  </p>
+                </div>
+              </label>
+            </div>
+          )}
+
           <button
             className="start-button"
             onClick={startNextRound}
             disabled={!prevRoundScore.allScoredCards || prevRoundScore.allScoredCards.length === 0}
             style={(!prevRoundScore.allScoredCards || prevRoundScore.allScoredCards.length === 0) ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
           >
-            {prevRoundScore.allScoredCards && prevRoundScore.allScoredCards.length > 0 ? `Start Round ${currentRound + 1}` : 'End Game'}
+            {prevRoundScore.allScoredCards && prevRoundScore.allScoredCards.length > 0 ? `Start Round ${currentRound + 1}${ramboMode ? ' (Rambo Mode)' : ''}` : 'End Game'}
           </button>
         </div>
       </div>
@@ -936,6 +998,19 @@ function App() {
           <div className="round-info">
             <span className="round-icon">{roundRules.icon}</span>
             <span className="round-title">{roundRules.title}</span>
+            {ramboMode && currentRound > 1 && (
+              <span style={{
+                marginLeft: '10px',
+                padding: '4px 10px',
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                🎯 RAMBO
+              </span>
+            )}
           </div>
           <div className="round-description-inline">{roundRules.description}</div>
           <div className="round-score-tracker">
