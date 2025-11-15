@@ -563,6 +563,41 @@ body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
+.team-banner {
+  text-align: center;
+  padding: 15px 20px;
+  margin: -20px -20px 20px -20px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px 10px 0 0;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.team-banner-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  opacity: 0.9;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.team-banner-name {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 .round-info {
   display: flex;
   align-items: center;
@@ -972,6 +1007,21 @@ body {
 
   .round-indicator {
     padding: 15px;
+  }
+
+  .team-banner {
+    margin: -15px -15px 15px -15px;
+    padding: 12px 15px;
+  }
+
+  .team-banner-label {
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+  }
+
+  .team-banner-name {
+    font-size: 2rem;
+    letter-spacing: 2px;
   }
 
   .round-title {
