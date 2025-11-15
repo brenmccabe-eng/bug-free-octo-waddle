@@ -336,10 +336,10 @@ function App() {
       const availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
 
       if (availableCards.length === 0) {
-        // Round complete!
+        // No more cards available - complete current team's turn
         setCurrentCard(null);
         setTimerRunning(false);
-        completeRound();
+        completeTeamTurn();
       } else {
         const nextCard = availableCards[0];
         setCurrentCard(nextCard);
