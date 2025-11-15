@@ -378,8 +378,15 @@ function App() {
 
     // Check if all teams have played this round
     if (currentTeam < numberOfTeams) {
-      // More teams need to play this round
-      setShowTeamTransition(true);
+      // Check if there are cards available for the next team
+      const availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
+      if (availableCards.length > 0) {
+        // More teams need to play and there are cards available
+        setShowTeamTransition(true);
+      } else {
+        // No cards left for remaining teams, end the round
+        completeRound(updatedTeamScores);
+      }
     } else {
       // All teams finished this round, complete the round
       completeRound(updatedTeamScores);
