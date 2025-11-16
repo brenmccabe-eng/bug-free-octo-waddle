@@ -341,32 +341,33 @@ function App() {
       // Get cards that haven't been used in this round yet
       const alreadyUsedIds = roundUsedCards;
 
+      console.log('Activating Rambo Mode:', {
+        ramboLevel,
+        skippedCardsCount: skippedCards.length,
+        roundUsedCardsCount: roundUsedCards.length,
+        deckForRoundsCount: deckForRounds.length,
+        originalDeckCount: originalDeck.length
+      });
+
       if (ramboLevel === 0) {
-        // First activation: try Rambo Mode with skipped cards only
+        // First activation: only activate if there are skipped cards
         const skippedAvailable = skippedCards.filter(card => !alreadyUsedIds.includes(card.id));
+
+        console.log('Level 0 -> Checking skipped cards:', {
+          skippedAvailableCount: skippedAvailable.length,
+          skippedCards: skippedCards.map(c => c.name)
+        });
 
         if (skippedAvailable.length > 0) {
           // Activate Rambo Mode (level 1) with skipped cards
           setRamboLevel(1);
           const nextCard = skippedAvailable[0];
+          console.log('Activating Level 1 with card:', nextCard.name);
           setCurrentCard(nextCard);
           setUsedCards([...usedCards, nextCard.id]);
           setRoundUsedCards([...roundUsedCards, nextCard.id]);
-        } else {
-          // No skipped cards available, go straight to Double Rambo (level 2)
-          // Double Rambo: cards from original deck that are NOT in current round's deck
-          const deckIds = deckForRounds.map(c => c.id);
-          const allAvailable = originalDeck.filter(card =>
-            !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
-          );
-          if (allAvailable.length > 0) {
-            setRamboLevel(2);
-            const nextCard = allAvailable[0];
-            setCurrentCard(nextCard);
-            setUsedCards([...usedCards, nextCard.id]);
-            setRoundUsedCards([...roundUsedCards, nextCard.id]);
-          }
         }
+        // If no skipped cards, don't activate - button will show Double Rambo instead
       } else if (ramboLevel === 1) {
         // Already in Rambo Mode, upgrade to Double Rambo (level 2)
         // Double Rambo: cards from original deck that are NOT in current round's deck
@@ -374,6 +375,9 @@ function App() {
         const allAvailable = originalDeck.filter(card =>
           !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
         );
+        console.log('Level 1 -> Level 2:', {
+          allAvailableCount: allAvailable.length
+        });
         if (allAvailable.length > 0) {
           setRamboLevel(2);
           const nextCard = allAvailable[0];
@@ -385,32 +389,94 @@ function App() {
     }
   };
 
+  // Activate Double Rambo Mode directly (when no skipped cards)
+  const activateDoubleRamboMode = () => {
+    console.log('🔥 activateDoubleRamboMode CALLED');
+    if (currentRound > 1 && ramboLevel === 0) {
+      const alreadyUsedIds = roundUsedCards;
+      const deckIds = deckForRounds.map(c => c.id);
+      const allAvailable = originalDeck.filter(card =>
+        !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
+      );
+
+      console.log('🔥 Directly activating Level 2:', {
+        currentTeam,
+        allAvailableCount: allAvailable.length,
+        allAvailable: allAvailable.slice(0, 5).map(c => c.name)
+      });
+
+      if (allAvailable.length > 0) {
+        setRamboLevel(2);
+        const nextCard = allAvailable[0];
+        setCurrentCard(nextCard);
+        setUsedCards([...usedCards, nextCard.id]);
+        setRoundUsedCards([...roundUsedCards, nextCard.id]);
+      }
+    }
+  };
+
   // Get next card in Monikers round
   const getNextCardInRound = () => {
     if (gameMode === 'monikers') {
       // Filter out cards used by ANY team in this round
       let availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
 
-      // If no cards from regular deck but rambo mode is active, use appropriate card pool
-      if (availableCards.length === 0 && ramboLevel > 0 && currentRound > 1) {
-        if (ramboLevel === 1) {
-          // Rambo Mode: use only skipped cards
-          availableCards = skippedCards.filter(card => !roundUsedCards.includes(card.id));
-        } else if (ramboLevel === 2) {
-          // Double Rambo Mode: cards from original deck NOT in current round's deck
-          const deckIds = deckForRounds.map(c => c.id);
-          availableCards = originalDeck.filter(card =>
-            !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
-          );
-        }
-      }
+      console.log('Getting next card in round:', {
+        regularDeckAvailable: availableCards.length,
+        ramboLevel,
+        skippedCardsCount: skippedCards.length
+      });
 
       if (availableCards.length === 0) {
-        // No more cards available - show rambo mode option
-        setCurrentCard(null);
-        // Don't stop timer or end turn - let player choose rambo mode or end turn manually
+        // No more cards available from regular deck
+        // Check if we're in an active rambo mode and have cards left
+        if (ramboLevel === 1) {
+          // In Rambo Mode - check if skipped cards available
+          const skippedAvailable = skippedCards.filter(card => !roundUsedCards.includes(card.id));
+          if (skippedAvailable.length > 0) {
+            // Continue with next skipped card
+            const nextCard = skippedAvailable[0];
+            console.log('Rambo Level 1: Next skipped card:', nextCard.name);
+            setCurrentCard(nextCard);
+            setUsedCards([...usedCards, nextCard.id]);
+            setRoundUsedCards([...roundUsedCards, nextCard.id]);
+            return;
+          } else {
+            // Skipped cards exhausted - show DOUBLE RAMBO button
+            console.log('Skipped cards exhausted - showing Double Rambo button');
+            setCurrentCard(null);
+            return;
+          }
+        } else if (ramboLevel === 2) {
+          // In Double Rambo Mode - check if never-scored cards available
+          const deckIds = deckForRounds.map(c => c.id);
+          const neverScoredAvailable = originalDeck.filter(card =>
+            !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
+          );
+          if (neverScoredAvailable.length > 0) {
+            // Continue with next never-scored card
+            const nextCard = neverScoredAvailable[0];
+            console.log('Rambo Level 2: Next never-scored card:', nextCard.name);
+            setCurrentCard(nextCard);
+            setUsedCards([...usedCards, nextCard.id]);
+            setRoundUsedCards([...roundUsedCards, nextCard.id]);
+            return;
+          } else {
+            // All cards exhausted
+            console.log('All cards exhausted');
+            setCurrentCard(null);
+            return;
+          }
+        } else {
+          // Not in rambo mode yet - show RAMBO button
+          console.log('Regular deck exhausted - showing Rambo button');
+          setCurrentCard(null);
+          return;
+        }
       } else {
+        // Regular deck has cards - get next one
         const nextCard = availableCards[0];
+        console.log('Next regular card:', nextCard.name);
         setCurrentCard(nextCard);
         // Add to both usedCards (for current team) and roundUsedCards (for all teams)
         setUsedCards([...usedCards, nextCard.id]);
@@ -501,9 +567,10 @@ function App() {
     setCurrentTeam(currentTeam + 1);
     setShowTeamTransition(false);
 
-    // Reset turn state (but keep roundUsedCards to prevent card repetition)
+    // Reset turn state (but keep roundUsedCards AND skippedCards to prevent card repetition)
+    // Note: skippedCards accumulates across teams so they can be used in Rambo mode
     setScoredCards([]);
-    setSkippedCards([]);
+    // Don't reset skippedCards - they should accumulate across teams in this round
     setUsedCards([]);
     setTimeLeft(60);
     setCardsCompleted(0);
@@ -530,8 +597,9 @@ function App() {
     setDeckForRounds(newDeck);
 
     // Reset round state (including roundUsedCards for the new round)
+    // NOTE: We DON'T reset skippedCards - they carry over for Rambo mode in future rounds!
     setScoredCards([]);
-    setSkippedCards([]);
+    // Don't reset skippedCards - they should persist across rounds for Rambo mode
     setUsedCards([]);
     setRoundUsedCards([]);
     setTimeLeft(60);
@@ -1123,55 +1191,93 @@ function App() {
         </div>
       )}
 
-      {gameMode === 'monikers' && !currentCard && timeLeft > 0 && currentRound > 1 && (
-        <div className="card-container">
-          <div
-            className="game-card"
-            style={{
-              backgroundColor: ramboLevel === 1 ? '#dc2626' : '#ef4444',
-              borderColor: ramboLevel === 1 ? '#dc2626' : '#ef4444',
-              color: '#ffffff',
-              cursor: 'pointer'
-            }}
-            onClick={activateRamboMode}
-          >
+      {gameMode === 'monikers' && !currentCard && timeLeft > 0 && currentRound > 1 && (() => {
+        // Determine which rambo mode button to show
+        const skippedAvailable = skippedCards.filter(card => !roundUsedCards.includes(card.id));
+        const hasSkippedCards = skippedAvailable.length > 0;
+        const deckIds = deckForRounds.map(c => c.id);
+        const neverScoredAvailable = originalDeck.filter(card =>
+          !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
+        );
+
+        console.log('🔴 BUTTON RENDER:', {
+          currentTeam,
+          ramboLevel,
+          totalSkippedCards: skippedCards.length,
+          skippedAvailableCount: skippedAvailable.length,
+          skippedAvailableCards: skippedAvailable.map(c => c.name),
+          hasSkippedCards,
+          neverScoredAvailableCount: neverScoredAvailable.length
+        });
+
+        // Determine which mode we're showing button for
+        let showingDoubleRambo = false;
+        let buttonHandler = activateRamboMode;
+
+        if (ramboLevel === 0) {
+          // Not in any rambo mode yet
+          if (!hasSkippedCards) {
+            // No skipped cards, show Double Rambo button directly
+            console.log('🔴 Showing DOUBLE RAMBO button (no skipped cards)');
+            showingDoubleRambo = true;
+            buttonHandler = activateDoubleRamboMode;
+          } else {
+            console.log('🔴 Showing RAMBO button (has skipped cards)');
+          }
+        } else if (ramboLevel === 1) {
+          // In Rambo mode, show Double Rambo button
+          console.log('🔴 Showing DOUBLE RAMBO button (rambo level 1 exhausted)');
+          showingDoubleRambo = true;
+          buttonHandler = activateRamboMode; // This will upgrade to level 2
+        }
+
+        return (
+          <div className="card-container">
             <div
-              className="difficulty-badge"
+              className="game-card"
               style={{
-                backgroundColor: ramboLevel === 1 ? '#7f1d1d' : '#991b1b',
-                color: '#ffffff'
+                backgroundColor: showingDoubleRambo ? '#dc2626' : '#ef4444',
+                borderColor: showingDoubleRambo ? '#dc2626' : '#ef4444',
+                color: '#ffffff',
+                cursor: 'pointer'
               }}
+              onClick={buttonHandler}
             >
-              {ramboLevel === 1 ? 'DOUBLE RAMBO MODE' : 'RAMBO MODE'}
+              <div
+                className="difficulty-badge"
+                style={{
+                  backgroundColor: showingDoubleRambo ? '#7f1d1d' : '#991b1b',
+                  color: '#ffffff'
+                }}
+              >
+                {showingDoubleRambo ? 'DOUBLE RAMBO MODE' : 'RAMBO MODE'}
+              </div>
+
+              <h1 className="card-name" style={{ color: '#ffffff', fontSize: showingDoubleRambo ? '2.2rem' : '2.5rem', marginTop: '40px' }}>
+                {showingDoubleRambo ? '🔥 GO DOUBLE RAMBO!' : '🎯 GO RAMBO!'}
+              </h1>
+
+              <div className="definition-section">
+                <p className="card-definition" style={{ color: '#ffffff', fontSize: '1.1rem', marginTop: '20px' }}>
+                  {showingDoubleRambo
+                    ? 'Skipped cards exhausted! Click to play cards from the original deck that were never scored - the ultimate long shots!'
+                    : 'All regular cards have been played! Click to play your skipped cards for redemption opportunities.'}
+                </p>
+                <p style={{ color: '#fca5a5', fontSize: '0.9rem', marginTop: '15px', fontStyle: 'italic' }}>
+                  {showingDoubleRambo
+                    ? `${neverScoredAvailable.length} cards available`
+                    : `${skippedAvailable.length} skipped cards available`}
+                </p>
+              </div>
             </div>
-
-            <h1 className="card-name" style={{ color: '#ffffff', fontSize: ramboLevel === 1 ? '2.2rem' : '2.5rem', marginTop: '40px' }}>
-              {ramboLevel === 1 ? '🔥 GO DOUBLE RAMBO!' : '🎯 GO RAMBO!'}
-            </h1>
-
-            <div className="definition-section">
-              <p className="card-definition" style={{ color: '#ffffff', fontSize: '1.1rem', marginTop: '20px' }}>
-                {ramboLevel === 1
-                  ? 'Skipped cards exhausted! Click to play cards from the original deck that were never scored - the ultimate long shots!'
-                  : 'All regular cards have been played! Click to play your skipped cards for redemption opportunities.'}
-              </p>
-              <p style={{ color: '#fca5a5', fontSize: '0.9rem', marginTop: '15px', fontStyle: 'italic' }}>
-                {ramboLevel === 1
-                  ? `${originalDeck.filter(card => {
-                      const deckIds = deckForRounds.map(c => c.id);
-                      return !roundUsedCards.includes(card.id) && !deckIds.includes(card.id);
-                    }).length} cards available`
-                  : `${skippedCards.filter(card => !roundUsedCards.includes(card.id)).length} skipped cards available`}
-              </p>
+            <div className="monikers-controls">
+              <button className="score-button" onClick={buttonHandler} style={{ width: '100%' }}>
+                {showingDoubleRambo ? 'Activate Double Rambo Mode 🔥' : 'Activate Rambo Mode 🎯'}
+              </button>
             </div>
           </div>
-          <div className="monikers-controls">
-            <button className="score-button" onClick={activateRamboMode} style={{ width: '100%' }}>
-              {ramboLevel === 1 ? 'Activate Double Rambo Mode 🔥' : 'Activate Rambo Mode 🎯'}
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {gameMode === 'monikers' && !currentCard && timeLeft === 0 && (
         <div className="round-complete-message">
