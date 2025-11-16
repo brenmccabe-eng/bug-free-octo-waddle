@@ -391,6 +391,7 @@ function App() {
 
   // Activate Double Rambo Mode directly (when no skipped cards)
   const activateDoubleRamboMode = () => {
+    console.log('🔥 activateDoubleRamboMode CALLED');
     if (currentRound > 1 && ramboLevel === 0) {
       const alreadyUsedIds = roundUsedCards;
       const deckIds = deckForRounds.map(c => c.id);
@@ -398,7 +399,8 @@ function App() {
         !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
       );
 
-      console.log('Directly activating Level 2:', {
+      console.log('🔥 Directly activating Level 2:', {
+        currentTeam,
         allAvailableCount: allAvailable.length,
         allAvailable: allAvailable.slice(0, 5).map(c => c.name)
       });
@@ -1197,6 +1199,16 @@ function App() {
           !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
         );
 
+        console.log('🔴 BUTTON RENDER:', {
+          currentTeam,
+          ramboLevel,
+          totalSkippedCards: skippedCards.length,
+          skippedAvailableCount: skippedAvailable.length,
+          skippedAvailableCards: skippedAvailable.map(c => c.name),
+          hasSkippedCards,
+          neverScoredAvailableCount: neverScoredAvailable.length
+        });
+
         // Determine which mode we're showing button for
         let showingDoubleRambo = false;
         let buttonHandler = activateRamboMode;
@@ -1205,11 +1217,15 @@ function App() {
           // Not in any rambo mode yet
           if (!hasSkippedCards) {
             // No skipped cards, show Double Rambo button directly
+            console.log('🔴 Showing DOUBLE RAMBO button (no skipped cards)');
             showingDoubleRambo = true;
             buttonHandler = activateDoubleRamboMode;
+          } else {
+            console.log('🔴 Showing RAMBO button (has skipped cards)');
           }
         } else if (ramboLevel === 1) {
           // In Rambo mode, show Double Rambo button
+          console.log('🔴 Showing DOUBLE RAMBO button (rambo level 1 exhausted)');
           showingDoubleRambo = true;
           buttonHandler = activateRamboMode; // This will upgrade to level 2
         }
