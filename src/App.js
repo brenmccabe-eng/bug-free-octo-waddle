@@ -418,36 +418,56 @@ function App() {
         skippedCardsCount: skippedCards.length
       });
 
-      // If no cards from regular deck but rambo mode is active, use appropriate card pool
-      if (availableCards.length === 0 && ramboLevel > 0 && currentRound > 1) {
+      if (availableCards.length === 0) {
+        // No more cards available from regular deck
+        // Check if we're in an active rambo mode and have cards left
         if (ramboLevel === 1) {
-          // Rambo Mode: use only skipped cards
-          availableCards = skippedCards.filter(card => !roundUsedCards.includes(card.id));
-          console.log('Rambo Level 1: Using skipped cards:', {
-            availableCount: availableCards.length,
-            cards: availableCards.slice(0, 3).map(c => c.name)
-          });
+          // In Rambo Mode - check if skipped cards available
+          const skippedAvailable = skippedCards.filter(card => !roundUsedCards.includes(card.id));
+          if (skippedAvailable.length > 0) {
+            // Continue with next skipped card
+            const nextCard = skippedAvailable[0];
+            console.log('Rambo Level 1: Next skipped card:', nextCard.name);
+            setCurrentCard(nextCard);
+            setUsedCards([...usedCards, nextCard.id]);
+            setRoundUsedCards([...roundUsedCards, nextCard.id]);
+            return;
+          } else {
+            // Skipped cards exhausted - show DOUBLE RAMBO button
+            console.log('Skipped cards exhausted - showing Double Rambo button');
+            setCurrentCard(null);
+            return;
+          }
         } else if (ramboLevel === 2) {
-          // Double Rambo Mode: cards from original deck NOT in current round's deck
+          // In Double Rambo Mode - check if never-scored cards available
           const deckIds = deckForRounds.map(c => c.id);
-          availableCards = originalDeck.filter(card =>
+          const neverScoredAvailable = originalDeck.filter(card =>
             !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
           );
-          console.log('Rambo Level 2: Using never-scored cards:', {
-            availableCount: availableCards.length,
-            cards: availableCards.slice(0, 3).map(c => c.name)
-          });
+          if (neverScoredAvailable.length > 0) {
+            // Continue with next never-scored card
+            const nextCard = neverScoredAvailable[0];
+            console.log('Rambo Level 2: Next never-scored card:', nextCard.name);
+            setCurrentCard(nextCard);
+            setUsedCards([...usedCards, nextCard.id]);
+            setRoundUsedCards([...roundUsedCards, nextCard.id]);
+            return;
+          } else {
+            // All cards exhausted
+            console.log('All cards exhausted');
+            setCurrentCard(null);
+            return;
+          }
+        } else {
+          // Not in rambo mode yet - show RAMBO button
+          console.log('Regular deck exhausted - showing Rambo button');
+          setCurrentCard(null);
+          return;
         }
-      }
-
-      if (availableCards.length === 0) {
-        // No more cards available - show rambo mode option
-        setCurrentCard(null);
-        console.log('No more cards available');
-        // Don't stop timer or end turn - let player choose rambo mode or end turn manually
       } else {
+        // Regular deck has cards - get next one
         const nextCard = availableCards[0];
-        console.log('Next card:', nextCard.name);
+        console.log('Next regular card:', nextCard.name);
         setCurrentCard(nextCard);
         // Add to both usedCards (for current team) and roundUsedCards (for all teams)
         setUsedCards([...usedCards, nextCard.id]);
