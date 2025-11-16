@@ -354,7 +354,11 @@ function App() {
           setRoundUsedCards([...roundUsedCards, nextCard.id]);
         } else {
           // No skipped cards available, go straight to Double Rambo (level 2)
-          const allAvailable = originalDeck.filter(card => !alreadyUsedIds.includes(card.id));
+          // Double Rambo: cards from original deck that are NOT in current round's deck
+          const deckIds = deckForRounds.map(c => c.id);
+          const allAvailable = originalDeck.filter(card =>
+            !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
+          );
           if (allAvailable.length > 0) {
             setRamboLevel(2);
             const nextCard = allAvailable[0];
@@ -365,7 +369,11 @@ function App() {
         }
       } else if (ramboLevel === 1) {
         // Already in Rambo Mode, upgrade to Double Rambo (level 2)
-        const allAvailable = originalDeck.filter(card => !alreadyUsedIds.includes(card.id));
+        // Double Rambo: cards from original deck that are NOT in current round's deck
+        const deckIds = deckForRounds.map(c => c.id);
+        const allAvailable = originalDeck.filter(card =>
+          !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
+        );
         if (allAvailable.length > 0) {
           setRamboLevel(2);
           const nextCard = allAvailable[0];
@@ -389,8 +397,11 @@ function App() {
           // Rambo Mode: use only skipped cards
           availableCards = skippedCards.filter(card => !roundUsedCards.includes(card.id));
         } else if (ramboLevel === 2) {
-          // Double Rambo Mode: use all unplayed cards from original deck
-          availableCards = originalDeck.filter(card => !roundUsedCards.includes(card.id));
+          // Double Rambo Mode: cards from original deck NOT in current round's deck
+          const deckIds = deckForRounds.map(c => c.id);
+          availableCards = originalDeck.filter(card =>
+            !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
+          );
         }
       }
 
@@ -1141,12 +1152,15 @@ function App() {
             <div className="definition-section">
               <p className="card-definition" style={{ color: '#ffffff', fontSize: '1.1rem', marginTop: '20px' }}>
                 {ramboLevel === 1
-                  ? 'Skipped cards exhausted! Click to play ALL unplayed cards from the original deck for maximum chaos!'
+                  ? 'Skipped cards exhausted! Click to play cards from the original deck that were never scored - the ultimate long shots!'
                   : 'All regular cards have been played! Click to play your skipped cards for redemption opportunities.'}
               </p>
               <p style={{ color: '#fca5a5', fontSize: '0.9rem', marginTop: '15px', fontStyle: 'italic' }}>
                 {ramboLevel === 1
-                  ? `${originalDeck.filter(card => !roundUsedCards.includes(card.id)).length} cards available`
+                  ? `${originalDeck.filter(card => {
+                      const deckIds = deckForRounds.map(c => c.id);
+                      return !roundUsedCards.includes(card.id) && !deckIds.includes(card.id);
+                    }).length} cards available`
                   : `${skippedCards.filter(card => !roundUsedCards.includes(card.id)).length} skipped cards available`}
               </p>
             </div>
