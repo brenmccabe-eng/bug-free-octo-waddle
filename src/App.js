@@ -341,14 +341,28 @@ function App() {
       // Get cards that haven't been used in this round yet
       const alreadyUsedIds = roundUsedCards;
 
+      console.log('Activating Rambo Mode:', {
+        ramboLevel,
+        skippedCardsCount: skippedCards.length,
+        roundUsedCardsCount: roundUsedCards.length,
+        deckForRoundsCount: deckForRounds.length,
+        originalDeckCount: originalDeck.length
+      });
+
       if (ramboLevel === 0) {
         // First activation: try Rambo Mode with skipped cards only
         const skippedAvailable = skippedCards.filter(card => !alreadyUsedIds.includes(card.id));
+
+        console.log('Level 0 -> Checking skipped cards:', {
+          skippedAvailableCount: skippedAvailable.length,
+          skippedCards: skippedCards.map(c => c.name)
+        });
 
         if (skippedAvailable.length > 0) {
           // Activate Rambo Mode (level 1) with skipped cards
           setRamboLevel(1);
           const nextCard = skippedAvailable[0];
+          console.log('Activating Level 1 with card:', nextCard.name);
           setCurrentCard(nextCard);
           setUsedCards([...usedCards, nextCard.id]);
           setRoundUsedCards([...roundUsedCards, nextCard.id]);
@@ -359,6 +373,10 @@ function App() {
           const allAvailable = originalDeck.filter(card =>
             !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
           );
+          console.log('No skipped cards, going to Level 2:', {
+            allAvailableCount: allAvailable.length,
+            allAvailable: allAvailable.slice(0, 5).map(c => c.name)
+          });
           if (allAvailable.length > 0) {
             setRamboLevel(2);
             const nextCard = allAvailable[0];
@@ -374,6 +392,9 @@ function App() {
         const allAvailable = originalDeck.filter(card =>
           !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
         );
+        console.log('Level 1 -> Level 2:', {
+          allAvailableCount: allAvailable.length
+        });
         if (allAvailable.length > 0) {
           setRamboLevel(2);
           const nextCard = allAvailable[0];
@@ -391,26 +412,42 @@ function App() {
       // Filter out cards used by ANY team in this round
       let availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
 
+      console.log('Getting next card in round:', {
+        regularDeckAvailable: availableCards.length,
+        ramboLevel,
+        skippedCardsCount: skippedCards.length
+      });
+
       // If no cards from regular deck but rambo mode is active, use appropriate card pool
       if (availableCards.length === 0 && ramboLevel > 0 && currentRound > 1) {
         if (ramboLevel === 1) {
           // Rambo Mode: use only skipped cards
           availableCards = skippedCards.filter(card => !roundUsedCards.includes(card.id));
+          console.log('Rambo Level 1: Using skipped cards:', {
+            availableCount: availableCards.length,
+            cards: availableCards.slice(0, 3).map(c => c.name)
+          });
         } else if (ramboLevel === 2) {
           // Double Rambo Mode: cards from original deck NOT in current round's deck
           const deckIds = deckForRounds.map(c => c.id);
           availableCards = originalDeck.filter(card =>
             !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
           );
+          console.log('Rambo Level 2: Using never-scored cards:', {
+            availableCount: availableCards.length,
+            cards: availableCards.slice(0, 3).map(c => c.name)
+          });
         }
       }
 
       if (availableCards.length === 0) {
         // No more cards available - show rambo mode option
         setCurrentCard(null);
+        console.log('No more cards available');
         // Don't stop timer or end turn - let player choose rambo mode or end turn manually
       } else {
         const nextCard = availableCards[0];
+        console.log('Next card:', nextCard.name);
         setCurrentCard(nextCard);
         // Add to both usedCards (for current team) and roundUsedCards (for all teams)
         setUsedCards([...usedCards, nextCard.id]);
