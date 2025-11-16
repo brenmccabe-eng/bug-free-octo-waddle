@@ -597,8 +597,9 @@ function App() {
     setDeckForRounds(newDeck);
 
     // Reset round state (including roundUsedCards for the new round)
+    // NOTE: We DON'T reset skippedCards - they carry over for Rambo mode in future rounds!
     setScoredCards([]);
-    setSkippedCards([]);
+    // Don't reset skippedCards - they should persist across rounds for Rambo mode
     setUsedCards([]);
     setRoundUsedCards([]);
     setTimeLeft(60);
