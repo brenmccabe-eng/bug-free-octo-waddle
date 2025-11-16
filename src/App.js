@@ -538,9 +538,10 @@ function App() {
     setCurrentTeam(currentTeam + 1);
     setShowTeamTransition(false);
 
-    // Reset turn state (but keep roundUsedCards to prevent card repetition)
+    // Reset turn state (but keep roundUsedCards AND skippedCards to prevent card repetition)
+    // Note: skippedCards accumulates across teams so they can be used in Rambo mode
     setScoredCards([]);
-    setSkippedCards([]);
+    // Don't reset skippedCards - they should accumulate across teams in this round
     setUsedCards([]);
     setTimeLeft(60);
     setCardsCompleted(0);
