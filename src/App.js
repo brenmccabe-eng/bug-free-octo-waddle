@@ -341,28 +341,14 @@ function App() {
       // Get cards that haven't been used in this round yet
       const alreadyUsedIds = roundUsedCards;
 
-      console.log('Activating Rambo Mode:', {
-        ramboLevel,
-        skippedCardsCount: skippedCards.length,
-        roundUsedCardsCount: roundUsedCards.length,
-        deckForRoundsCount: deckForRounds.length,
-        originalDeckCount: originalDeck.length
-      });
-
       if (ramboLevel === 0) {
         // First activation: only activate if there are skipped cards
         const skippedAvailable = skippedCards.filter(card => !alreadyUsedIds.includes(card.id));
-
-        console.log('Level 0 -> Checking skipped cards:', {
-          skippedAvailableCount: skippedAvailable.length,
-          skippedCards: skippedCards.map(c => c.name)
-        });
 
         if (skippedAvailable.length > 0) {
           // Activate Rambo Mode (level 1) with skipped cards
           setRamboLevel(1);
           const nextCard = skippedAvailable[0];
-          console.log('Activating Level 1 with card:', nextCard.name);
           setCurrentCard(nextCard);
           setUsedCards([...usedCards, nextCard.id]);
           setRoundUsedCards([...roundUsedCards, nextCard.id]);
@@ -375,9 +361,6 @@ function App() {
         const allAvailable = originalDeck.filter(card =>
           !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
         );
-        console.log('Level 1 -> Level 2:', {
-          allAvailableCount: allAvailable.length
-        });
         if (allAvailable.length > 0) {
           setRamboLevel(2);
           const nextCard = allAvailable[0];
@@ -391,19 +374,12 @@ function App() {
 
   // Activate Double Rambo Mode directly (when no skipped cards)
   const activateDoubleRamboMode = () => {
-    console.log('🔥 activateDoubleRamboMode CALLED');
     if (currentRound > 1 && ramboLevel === 0) {
       const alreadyUsedIds = roundUsedCards;
       const deckIds = deckForRounds.map(c => c.id);
       const allAvailable = originalDeck.filter(card =>
         !alreadyUsedIds.includes(card.id) && !deckIds.includes(card.id)
       );
-
-      console.log('🔥 Directly activating Level 2:', {
-        currentTeam,
-        allAvailableCount: allAvailable.length,
-        allAvailable: allAvailable.slice(0, 5).map(c => c.name)
-      });
 
       if (allAvailable.length > 0) {
         setRamboLevel(2);
@@ -421,12 +397,6 @@ function App() {
       // Filter out cards used by ANY team in this round
       let availableCards = deckForRounds.filter(card => !roundUsedCards.includes(card.id));
 
-      console.log('Getting next card in round:', {
-        regularDeckAvailable: availableCards.length,
-        ramboLevel,
-        skippedCardsCount: skippedCards.length
-      });
-
       if (availableCards.length === 0) {
         // No more cards available from regular deck
         // Check if we're in an active rambo mode and have cards left
@@ -436,14 +406,12 @@ function App() {
           if (skippedAvailable.length > 0) {
             // Continue with next skipped card
             const nextCard = skippedAvailable[0];
-            console.log('Rambo Level 1: Next skipped card:', nextCard.name);
             setCurrentCard(nextCard);
             setUsedCards([...usedCards, nextCard.id]);
             setRoundUsedCards([...roundUsedCards, nextCard.id]);
             return;
           } else {
             // Skipped cards exhausted - show DOUBLE RAMBO button
-            console.log('Skipped cards exhausted - showing Double Rambo button');
             setCurrentCard(null);
             return;
           }
@@ -456,27 +424,23 @@ function App() {
           if (neverScoredAvailable.length > 0) {
             // Continue with next never-scored card
             const nextCard = neverScoredAvailable[0];
-            console.log('Rambo Level 2: Next never-scored card:', nextCard.name);
             setCurrentCard(nextCard);
             setUsedCards([...usedCards, nextCard.id]);
             setRoundUsedCards([...roundUsedCards, nextCard.id]);
             return;
           } else {
             // All cards exhausted
-            console.log('All cards exhausted');
             setCurrentCard(null);
             return;
           }
         } else {
           // Not in rambo mode yet - show RAMBO button
-          console.log('Regular deck exhausted - showing Rambo button');
           setCurrentCard(null);
           return;
         }
       } else {
         // Regular deck has cards - get next one
         const nextCard = availableCards[0];
-        console.log('Next regular card:', nextCard.name);
         setCurrentCard(nextCard);
         // Add to both usedCards (for current team) and roundUsedCards (for all teams)
         setUsedCards([...usedCards, nextCard.id]);
@@ -1200,16 +1164,6 @@ function App() {
           !roundUsedCards.includes(card.id) && !deckIds.includes(card.id)
         );
 
-        console.log('🔴 BUTTON RENDER:', {
-          currentTeam,
-          ramboLevel,
-          totalSkippedCards: skippedCards.length,
-          skippedAvailableCount: skippedAvailable.length,
-          skippedAvailableCards: skippedAvailable.map(c => c.name),
-          hasSkippedCards,
-          neverScoredAvailableCount: neverScoredAvailable.length
-        });
-
         // Determine which mode we're showing button for
         let showingDoubleRambo = false;
         let buttonHandler = activateRamboMode;
@@ -1218,15 +1172,11 @@ function App() {
           // Not in any rambo mode yet
           if (!hasSkippedCards) {
             // No skipped cards, show Double Rambo button directly
-            console.log('🔴 Showing DOUBLE RAMBO button (no skipped cards)');
             showingDoubleRambo = true;
             buttonHandler = activateDoubleRamboMode;
-          } else {
-            console.log('🔴 Showing RAMBO button (has skipped cards)');
           }
         } else if (ramboLevel === 1) {
           // In Rambo mode, show Double Rambo button
-          console.log('🔴 Showing DOUBLE RAMBO button (rambo level 1 exhausted)');
           showingDoubleRambo = true;
           buttonHandler = activateRamboMode; // This will upgrade to level 2
         }
